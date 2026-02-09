@@ -7,8 +7,4 @@ require_once __DIR__ . '/../core/Router.php';
 require_once __DIR__ . '/../config/env.php';
 
 $router = new Router();
-
-require __DIR__ . '/../routes/web.php';
-
 $router->dispatch();
-

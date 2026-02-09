@@ -35,6 +35,20 @@ body {
 	margin-right: 40px;
 }
 
+@font-face {
+	font-family: 'Billabong';
+	src: url('/../assets/Billabong.otf') format('opentype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.logo {
+	font-family: 'Billabong', cursive;
+	font-size: 48px;
+	color: #333;
+	letter-spacing: 1px;
+}
+
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

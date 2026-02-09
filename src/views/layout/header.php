@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
+	<link rel="icon" href="/assets/favicon.ico">
 	<title>Camagru</title>
-	<link rel="stylesheet" href="/front/css/styles.css">
+	<link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
 
 <nav class="topbar">
-	<div class="logo">Camagru</div>
+	<div class="logo">CAMAGRU</div>
 	<div class="nav-right">
 		<a href="/profile">Profile</a>
 		<form method="post" action="/">
