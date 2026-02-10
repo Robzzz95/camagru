@@ -14,6 +14,12 @@ body {
 	padding: 0 20px;
 }
 
+.nav-right {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
 .profile-container {
 	max-width: 935px;
 	margin: 40px auto;
@@ -27,8 +33,8 @@ body {
 .avatar {
 	width: 150px;
 	height: 150px;
-	border-radius: 50%;
-	margin-right: 50px;
+	/* border-radius: 50%; */
+	/* margin-right: 50px; */
 }
 
 .profile-meta span {
@@ -37,22 +43,32 @@ body {
 
 @font-face {
 	font-family: 'Billabong';
-	src: url('/../assets/Billabong.otf') format('opentype');
+	src: url('../assets/Billabong.otf') format('opentype');
 	font-weight: normal;
 	font-style: normal;
 }
 
 .logo {
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	font-family: 'Billabong', cursive;
-	font-size: 48px;
+	font-size: 32px;
 	color: #333;
-	letter-spacing: 1px;
+	letter-spacing: 2px;
+	text-decoration: none;
+}
+
+.logo-icon {
+	width: 32px;
+	height: 32px;
 }
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 10px;
 }
 
 button:disabled {
@@ -74,4 +90,39 @@ button:disabled {
 .comments {
 	font-size: 13px;
 	color: #444;
+}
+
+
+/* mobile */
+@media (max-width: 768px) {
+	.logo {
+		font-size: 32px;
+	}
+
+	.logo-icon {
+		width: 32px;
+		height: 32px;
+	}
+
+	.topbar {
+		height: 50px;
+		padding: 0 10px;
+	}
+
+	.avatar {
+	width: 90px;
+	height: 90px;
+	/* border-radius: 50%; */
+	/* margin-right: 50px; */
+	}
+
+	.nav-right {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+	}
+
+	.gallery-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
 }

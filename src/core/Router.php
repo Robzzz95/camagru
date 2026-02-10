@@ -44,6 +44,10 @@ class Router
 				require_once __DIR__ . '/../controllers/SettingsController.php';
 				(new SettingsController())->index();
 				break;
+			
+			case '/confirm':
+				require_once __DIR__ . '/../controllers/AuthController.php';
+				(new AuthController())->confirm();
 
 			default:
 				http_response_code(404);

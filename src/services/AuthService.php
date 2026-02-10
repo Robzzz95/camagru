@@ -17,6 +17,8 @@ class AuthService {
 			return (false);
 		if (!password_verify($password, $user['password_hash']))
 			return (false);
+		if (!$user['email_confirmed'])
+			return ['success' => false, 'message' => 'Email not confirmed'];
 
 		$_SESSION['user_id'] = $user['id'];
 		return (true);
@@ -65,6 +67,17 @@ class AuthService {
 		$link = $_ENV['APP_URL'] . "/confirm?token=$token";
 		mail($email, "Confirm account", "Confirm here:\n$link",	"From: camagru@local");
 		return ['success' => true];
+	}
+
+	//-------------
+	//confirm email
+	//-------------
+	public function confirmEmail(string $token): bool
+	{
+		$pdo = Database::get();
+		$stmt = $pdo->prepare("UPDATE users SER email_confirmed = 1, confirmation_token = NULL WHERE confirmation_token = ?");
+		$stmt->execute([$token]);
+		return $stmt->rowCount() === 1;
 	}
 }
 

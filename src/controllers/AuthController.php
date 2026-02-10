@@ -15,7 +15,7 @@ class AuthController {
 		Auth::guest();
 
 		$email = $_POST['email'] ?? '';
-		$password = $_POST['password'] ?? '';
+		$password = $_POST['password_hash'] ?? '';
 		if ($this->service->login($email, $password)) {
 			header('Location: /profile');
 		}
@@ -39,6 +39,21 @@ class AuthController {
 		$this->service->logout();
 		header('Location: /');
 		exit;
+	}
+
+	public function confirm() {
+		$token = $_GET['token'] ?? '';
+		if (!$token)
+		{
+			echo "Invalid token";
+			return ;
+		}
+
+		if ($this-service->confirmEmail($token))
+			echo "Email confirmed. You can now login";
+		else
+			echo "Invalid or expired token.";
+
 	}
 }
 
