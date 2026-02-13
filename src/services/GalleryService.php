@@ -64,8 +64,5 @@ class GalleryService
 		if (file_exists($file)) {
 			unlink($file);
 		}
-
-		
-
 	}
 }

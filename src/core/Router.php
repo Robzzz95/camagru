@@ -48,6 +48,15 @@ class Router
 			case '/confirm':
 				require_once __DIR__ . '/../controllers/AuthController.php';
 				(new AuthController())->confirm();
+				break;
+
+			case '/login':
+				require_once __DIR__ . '/../views/login.php';
+				break;
+
+			case '/signup':
+				require_once __DIR__ . '/../views/signup.php';
+				break;
 
 			default:
 				http_response_code(404);

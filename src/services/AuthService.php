@@ -9,16 +9,16 @@ class AuthService {
 	// ----------------
 	public function login(string $email, string $password): bool {
 		$db = Database::get();
-		$stmt = $db->prepare("SELECT id, password_hash FROM users WHERE email = ?");
+		$stmt = $db->prepare("SELECT id, password_hash, email_confirmed FROM users WHERE email = ?");
 		$stmt->execute([$email]);
 		$user = $stmt->fetch();
 
 		if (!$user)
 			return (false);
+		if (!$user['email_confirmed'])
+			return (false);
 		if (!password_verify($password, $user['password_hash']))
 			return (false);
-		if (!$user['email_confirmed'])
-			return ['success' => false, 'message' => 'Email not confirmed'];
 
 		$_SESSION['user_id'] = $user['id'];
 		return (true);
@@ -75,7 +75,7 @@ class AuthService {
 	public function confirmEmail(string $token): bool
 	{
 		$pdo = Database::get();
-		$stmt = $pdo->prepare("UPDATE users SER email_confirmed = 1, confirmation_token = NULL WHERE confirmation_token = ?");
+		$stmt = $pdo->prepare("UPDATE users SET email_confirmed = 1, confirmation_token = NULL WHERE confirmation_token = ?");
 		$stmt->execute([$token]);
 		return $stmt->rowCount() === 1;
 	}

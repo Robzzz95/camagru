@@ -14,12 +14,17 @@
 		<img src="/assets/favicon.ico" class="logo-icon" alt="logo">
 		CAMAGRU
 	</a>
+
 	<div class="nav-right">
+	<?php if (!empty($_SESSION['user_id'])): ?>
 		<a href="/profile">Profile</a>
-		<a href="/logout">Logout</a>
-		<!-- <form method="post" action="/">
-			<input type="hidden" name="action" value="logout">
-			<button>Logout</button>
-		</form> -->
+		<form method="POST" action="/logout" style="display:inline">
+			<button type="submit">Logout</button>
+		</form>
+
+	<?php else: ?>
+		<a href="/login">Login</a>
+		<a href="/signup">Signup</a>
+	<?php endif; ?>
 	</div>
 </nav>
