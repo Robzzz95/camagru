@@ -58,6 +58,12 @@ class Router
 				require_once __DIR__ . '/../views/signup.php';
 				break;
 
+			case '/logout':
+				require_once __DIR__ . '/../controllers/AuthController.php';
+				Auth::requireLogin();
+				(new AuthController())->logout();
+				break;
+
 			default:
 				http_response_code(404);
 				echo 'Not found';
@@ -76,10 +82,6 @@ class Router
 
 			case '/login':
 				(new AuthController())->login();
-				break;
-
-			case '/logout':
-				(new AuthController())->logout();
 				break;
 
 			case '/upload':

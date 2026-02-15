@@ -12,15 +12,13 @@
 <nav class="topbar">
 	<a href="/" class="logo">
 		<img src="/assets/favicon.ico" class="logo-icon" alt="logo">
-		CAMAGRU
+		Camagru
 	</a>
 
 	<div class="nav-right">
 	<?php if (!empty($_SESSION['user_id'])): ?>
 		<a href="/profile">Profile</a>
-		<form method="POST" action="/logout" style="display:inline">
-			<button type="submit">Logout</button>
-		</form>
+		<a href="/logout">Logout</a>
 
 	<?php else: ?>
 		<a href="/login">Login</a>

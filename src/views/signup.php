@@ -1,6 +1,7 @@
 <?php require __DIR__ . '/layout/header.php'; ?>
 
-<div class="auth-box">
+<div class=auth-wrapper>
+<div class="auth-card">
 	<h2>Signup</h2>
 
 	<form method="POST" action="/signup">
@@ -13,6 +14,7 @@
 	<?php if (!empty($_GET['error'])): ?>
 		<p class="error"><?= htmlspecialchars($_GET['error']) ?></p>
 	<?php endif; ?>
+</div>
 </div>
 
 <?php require __DIR__ . '/layout/footer.php'; ?>

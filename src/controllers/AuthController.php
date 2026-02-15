@@ -17,11 +17,12 @@ class AuthController {
 		$email = $_POST['email'] ?? '';
 		$password = $_POST['password'] ?? '';
 		if ($this->service->login($email, $password)) {
-			header('Location: /profile');
+			header('Location: /');
 		}
 		else {
-			header('Location: /?error=login');
+			header('Location: /?error=login=1');
 		}
+		exit;
 	}
 
 	public function signup() {
@@ -34,7 +35,7 @@ class AuthController {
 		exit;
 	}
 
-	public function logout() {
+	public function logout(): void {
 		Auth::check();
 		$this->service->logout();
 		header('Location: /');

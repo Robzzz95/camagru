@@ -1,22 +1,22 @@
 <?php
-declare(strict_types=1);
 
-require_once __DIR__ . '/../helpers/auth.php';
-require_once __DIR__ . '/../helpers/user.php';
-require __DIR__ . '/../views/layout/header.php';
-require __DIR__ . '/../views/profile.php';
-require __DIR__ . '/../views/layout/footer.php';
+require_once __DIR__ . '/../middleware/Auth.php';
+require_once __DIR__ . '/../core/Database.php';
 
 class ProfileController
 {
-	public function show(): void
+	public function index(): void
 	{
-		requireLogin();
+		Auth::requireLogin();
 
-		$user = currentUser();
+		$db = Database::get();
+		$stmt = $db->prepare("SELECT id, username, email FROM users WHERE id = ?");
+		$stmt->execute([$_SESSION['user_id']]);
+		$user = $stmt->fetch();
+
 		if (!$user) {
 			session_destroy();
-			header('Location: /login');
+			header('Location: /');
 			exit;
 		}
 

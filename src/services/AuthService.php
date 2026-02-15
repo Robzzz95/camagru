@@ -15,9 +15,9 @@ class AuthService {
 
 		if (!$user)
 			return (false);
-		if (!$user['email_confirmed'])
-			return (false);
 		if (!password_verify($password, $user['password_hash']))
+			return (false);
+		if (!$user['email_confirmed'])
 			return (false);
 
 		$_SESSION['user_id'] = $user['id'];
@@ -28,7 +28,9 @@ class AuthService {
 	// LOGOUT
 	// ----------------
 	public function logout(): void {
+		$_SESSION = [];
 		session_destroy();
+		exit;
 	}
 
 	// ----------------
