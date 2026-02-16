@@ -1,4 +1,4 @@
-<?php require __DIR__ . '/layout/header.php'; ?>
+<?php require __DIR__ . '/layout/header.html'; ?>
 
 <?php if (isset($_SESSION['user_id'])): ?>
 	<form action="/upload" method="POST" enctype="multipart/form-data" style="margin-bottom:30px">
@@ -39,4 +39,4 @@
 	<?php endforeach; ?>
 </div>
 
-<?php require __DIR__ . '/layout/footer.php'; ?>
+<?php require __DIR__ . '/layout/footer.html'; ?>

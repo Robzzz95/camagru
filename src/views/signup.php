@@ -1,4 +1,4 @@
-<?php require __DIR__ . '/layout/header.php'; ?>
+<?php require __DIR__ . '/layout/header.html'; ?>
 
 <div class=auth-wrapper>
 <div class="auth-card">
@@ -17,4 +17,4 @@
 </div>
 </div>
 
-<?php require __DIR__ . '/layout/footer.php'; ?>
+<?php require __DIR__ . '/layout/footer.html'; ?>

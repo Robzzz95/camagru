@@ -11,6 +11,12 @@ class AuthController {
 		$this->service = new AuthService;
 	}
 
+	public function status() {
+		header('Content-Type: application/json');
+		echo json_encode(['logged_in' => isset($_SESSION['user_id'])]);
+		exit;
+	}
+
 	public function login() {
 		Auth::guest();
 
@@ -49,12 +55,10 @@ class AuthController {
 			echo "Invalid token";
 			return;
 		}
-
 		if ($this->service->confirmEmail($token))
 			echo "Email confirmed. You can now login";
 		else
 			echo "Invalid or expired token.";
-
 	}
 }
 
