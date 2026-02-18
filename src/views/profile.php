@@ -2,7 +2,7 @@
 
 <div class="profile-container">
 	<div class="profile-header">
-		<img class="avatar" src="/front/assets/default-avatar.jpg" alt="avatar">
+		<img class="avatar" src="/assets/default-avatar.svg" alt="avatar">
 
 		<div class="profile-info">
 			<h2><?= htmlspecialchars($user['username']) ?></h2>
@@ -11,9 +11,9 @@
 	</div>
 
 	<div class="profile-meta">
-		<span><strong>0</strong> posts</span>
-		<span><strong>0</strong> followers</span>
-		<span><strong>0</strong> following</span>
+		<span><b>0</b> posts</span>
+		<span><b>0</b> followers</span>
+		<span><b>0</b> following</span>
 	</div>
 
 	<div class="profile-bio">

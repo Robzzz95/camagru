@@ -16,13 +16,10 @@ class Router
 		// ---------- GET ----------
 		$this->get('/', 'GalleryController@index');
 		$this->get('/gallery', 'GalleryController@index');
-
 		$this->get('/profile', 'ProfileController@index', true);
 		$this->get('/settings', 'SettingsController@index', true);
-
 		$this->get('/login', fn() => require __DIR__ . '/../views/login.php');
 		$this->get('/signup', fn() => require __DIR__ . '/../views/signup.php');
-
 		$this->get('/confirm', 'AuthController@confirm');
 		$this->get('/logout', 'AuthController@logout', true);
 		$this->get('/auth/status', 'AuthController@status');

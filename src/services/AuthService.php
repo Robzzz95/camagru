@@ -95,52 +95,6 @@ class AuthService {
 // 	}
 
 	// // ------------------------------
-	// // Login
-	// // ------------------------------
-	// public function login(array $data): array {
-	// 	$username = trim($data['username'] ?? '');
-	// 	$password = $data['password'] ?? '';
-
-	// 	if (!$username || !$password) {
-	// 		return ['success' => false, 'message' => 'Username and password are required.'];
-	// 	}
-	// 	$stmt = $this->pdo->prepare(
-	// 		"SELECT id, username, password_hash, email_confirmed
-	//  		FROM users WHERE username = ? OR email = ?");
-	// 	$stmt->execute([$username, $username]);
-	// 	$user = $stmt->fetch();
-	// 	if (!$user || !password_verify($password, $user['password_hash'])) {
-	// 		return ['success' => false, 'message' => 'Invalid credentials.'];
-	// 	}
-	// 	if (!$user['email_confirmed']) {
-	// 		return ['success' => false, 'message' => 'Please confirm your email first.'];
-	// 	}
-
-	// 	// Login success, store session
-	// 	session_regenerate_id(true);//need to see if i need to destroy previous session or not, mmight have race issues!
-	// 	$_SESSION['logged_in'] = true;
-	// 	$_SESSION['user_id'] = $user['id'];
-	// 	$_SESSION['username'] = $user['username'];
-	// 	return ['success' => true, 'message' => 'Login successful.'];
-	// }
-
-	// // ------------------------------
-	// // Logout
-	// // ------------------------------
-	// public function logout(): array {
-	// 	$_SESSION = [];
-	// 	if (ini_get("session.use_cookies")) {
-	// 		$params = session_get_cookie_params();
-	// 		setcookie(session_name(), '', time() - 42000,
-	// 			$params["path"], $params["domain"],
-	// 			$params["secure"], $params["httponly"]
-	// 		);
-	// 	}
-	// 	session_destroy();
-	// 	return ['success' => true, 'message' => 'Logged out successfully.'];
-	// }
-
-	// // ------------------------------
 	// // Email confirmation
 	// // ------------------------------
 	// public function confirmEmail(string $token): array {
