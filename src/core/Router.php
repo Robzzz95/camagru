@@ -22,7 +22,6 @@ class Router
 		$this->get('/signup', fn() => require __DIR__ . '/../views/signup.php');
 		$this->get('/confirm', 'AuthController@confirm');
 		$this->get('/logout', 'AuthController@logout', true);
-		$this->get('/auth/status', 'AuthController@status');
 
 		// ---------- POST ----------
 		$this->post('/signup', 'AuthController@signup');

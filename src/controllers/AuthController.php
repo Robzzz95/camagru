@@ -11,12 +11,6 @@ class AuthController {
 		$this->service = new AuthService;
 	}
 
-	public function status() {
-		header('Content-Type: application/json');
-		echo json_encode(['logged_in' => isset($_SESSION['user_id'])]);
-		exit;
-	}
-
 	public function login() {
 		Auth::guest();
 

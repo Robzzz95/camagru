@@ -24,20 +24,61 @@ class GalleryService
 
 	public static function upload(int $userId, array $file): void
 	{
-		if ($file['error'] !== UPLOAD_ERR_OK)
+		if (!isset($file) || !isset($file['error'])) {
+			throw new Exception("No file uploaded");
+		}
+		if ($file['error'] !== UPLOAD_ERR_OK) {
 			throw new Exception("Upload failed");
+		}
+		// Limit file size to 5MB
+		$maxSize = 5 * 1024 * 1024;
+		if ($file['size'] > $maxSize)
+			throw new Exception("File too large (max 5MB)");
+		$imageInfo = @getimagesize($file['tmp_name']);
+		if ($imageInfo === false)
+			throw new Exception("Invalid image file");
+		$mime = $imageInfo['mime'];
+		$allowedMime = [
+			'image/jpeg' => 'jpg',
+			'image/png'  => 'png',
+			'image/gif'  => 'gif'
+		];
 
-		$allowed = ['jpg','jpeg','png','gif'];
-		$ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-		if (!in_array($ext, $allowed))
-			throw new Exception("Invalid file type");
-
-		$filename = bin2hex(random_bytes(16)) . '.' . $ext;
-		$destination = __DIR__ . "/../uploads/" . $filename;
-		if (!move_uploaded_file($file['tmp_name'], $destination))
-			throw new Exception("Failed to move file");
-
+		if (!isset($allowedMime[$mime]))
+			throw new Exception("Unsupported image type");
+		$extension = $allowedMime[$mime];
+		$filename = bin2hex(random_bytes(16)) . '.' . $extension;
+		$uploadDir = __DIR__ . '/../public/uploads/';
+		$destination = $uploadDir . $filename;
+		if (!move_uploaded_file($file['tmp_name'], $destination)) {
+			throw new Exception("Failed to save file");
+		}
+		self::reencodeImage($destination, $mime);
 		self::create($userId, $filename);
+	}
+
+	private static function reencodeImage(string $path, string $mime): void
+	{
+		switch ($mime) {
+			case 'image/jpeg':
+				$image = imagecreatefromjpeg($path);
+				imagejpeg($image, $path, 90);
+				break;
+
+			case 'image/png':
+				$image = imagecreatefrompng($path);
+				imagepng($image, $path, 6);
+				break;
+
+			case 'image/gif':
+				$image = imagecreatefromgif($path);
+				imagegif($image, $path);
+				break;
+
+			default:
+				return;
+		}
+		imagedestroy($image);
 	}
 
 	public static function toggleLike(int $userId, int $imageId): void
@@ -66,11 +107,11 @@ class GalleryService
 		if ((int)$image['user_id'] !== $userId) {
 			throw new Exception("Unauthorized");
 		}
-		$file = __DIR__ . '/../uploads/' . $image['path'];
+		$file = __DIR__ . '/../public/uploads/' . $image['path'];
 		if (file_exists($file)) {
 			unlink($file);
 		}
-		// $db->prepare("DELETE FROM images WHERE id = ?")->execute([$imageId]);
-		// $db->prepare("DELETE FROM likes WHERE image_id = ?")->execute([$imageId]);
+		$db->prepare("DELETE FROM images WHERE id = ?")->execute([$imageId]);
+		$db->prepare("DELETE FROM likes WHERE image_id = ?")->execute([$imageId]);
 	}
 }

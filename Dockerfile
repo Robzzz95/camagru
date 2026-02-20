@@ -28,3 +28,7 @@ COPY ./src/config/msmtprc /etc/msmtprc
 RUN chmod 644 /etc/msmtprc
 	
 COPY ./src/config/php.ini /usr/local/etc/php/conf.d/php.ini
+
+# just in case
+RUN mkdir -p src/public/uploads
+RUN chmod -R 775 src/public/uploads

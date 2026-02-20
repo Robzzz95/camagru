@@ -10,7 +10,7 @@ class Comment
 
 	public static function forImage($imageId) {
 		$db = Database::get();
-		$stmt = db->prepare("SELECT c.*, u.username FROM comments c JOIN users u ON u.id = c.user_id
+		$stmt = $db->prepare("SELECT c.*, u.username FROM comments c JOIN users u ON u.id = c.user_id
 			WHERE image_id = ? ORDER BY c.created_at ASC");
 		$stmt->execute([$imageId]);
 		return ($stmt->fetchAll());

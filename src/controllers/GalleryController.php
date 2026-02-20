@@ -16,13 +16,18 @@ class GalleryController
 		require __DIR__ . '/../views/gallery.php';
 	}
 
-	public function upload() {
+	public function upload(): void
+	{
 		Auth::requireLogin();
-		if (empty($_FILES['image'])) {
-			header('Location: /?error=no_file');
-			exit;
+		try {
+			GalleryService::upload(
+				(int)$_SESSION['user_id'],
+				$_FILES['image'] ?? []
+			);
+			$_SESSION['flash_success'] = "Image uploaded successfully.";
+		} catch (Exception $e) {
+			$_SESSION['flash_error'] = $e->getMessage();
 		}
-		GalleryService::upload((int)$_SESSION['user_id'], $_FILES['image']);
 		header('Location: /');
 		exit;
 	}

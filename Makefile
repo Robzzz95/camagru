@@ -25,6 +25,7 @@ clean:
 
 fclean: clean
 	@docker system prune -af || true
+	@rm -rf src/public/uploads/*
 
 re: fclean run
 
