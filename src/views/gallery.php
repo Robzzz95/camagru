@@ -1,13 +1,5 @@
 <?php require __DIR__ . '/layout/header.php'; ?>
 
-<?php if (isset($_SESSION['user_id'])): ?>
-	<form action="/upload" method="POST" enctype="multipart/form-data" style="margin-bottom:30px">
-		<input type="file" name="image" required>
-		<button>Upload</button>
-	</form>
-<?php endif; ?>
-
-
 <?php if (!empty($_SESSION['flash_error'])): ?>
 	<div class="alert alert-error">
 		<?= htmlspecialchars($_SESSION['flash_error']) ?>
@@ -34,7 +26,8 @@
 			</div>
 
 			<div class="post-image">
-				<img src="/uploads/<?= htmlspecialchars($img['path']) ?>" alt="post">
+				<a href="/post/<?= $img['id'] ?>">
+					<img src="/uploads/<?= htmlspecialchars($img['path']) ?>"></a>
 			</div>
 
 			<div class="post-actions">
@@ -45,7 +38,7 @@
 					</button>
 				</form>
 				<span class="likes-count">
-					<?= $img['likes'] ?> likes
+					<?= $img['likes_count'] ?> likes
 				</span>
 			</div>
 

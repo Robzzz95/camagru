@@ -18,6 +18,7 @@
 		<div>
 			<?php if (isset($_SESSION['user_id'])): ?>
 				<a href="/profile">Profile</a>
+				<a href="/create">Post</a>
 				<a href="/logout">Logout</a>
 			<?php else: ?>
 				<a href="/login">Login</a>

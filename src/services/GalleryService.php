@@ -4,16 +4,57 @@ require_once __DIR__ . "/../core/Database.php";
 
 class GalleryService
 {
-	public static function all(): array {
+	public static function all(): array
+	{
 		$db = Database::get();
 		$stmt = $db->query("
 			SELECT images.*, users.username,
-			(SELECT COUNT(*) FROM likes WHERE likes.image_id = images.id) AS likes
+			(SELECT COUNT(*) FROM likes WHERE likes.image_id = images.id) AS likes_count
 			FROM images
 			JOIN users ON users.id = images.user_id
 			ORDER BY images.created_at DESC
 		");
-		return $stmt->fetchAll();
+
+		$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($images as $key => $image) {
+
+			$stmt = $db->prepare("
+				SELECT comments.*, users.username
+				FROM comments
+				JOIN users ON users.id = comments.user_id
+				WHERE comments.image_id = ?
+				ORDER BY comments.created_at ASC
+			");
+
+			$stmt->execute([$image['id']]);
+			$images[$key]['comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		}
+		return $images;
+	}
+
+	public static function find(int $id): ?array
+	{
+		$db = Database::get();
+		$stmt = $db->prepare("
+			SELECT images.*, users.username
+			FROM images
+			JOIN users ON users.id = images.user_id
+			WHERE images.id = ?
+		");
+		$stmt->execute([$id]);
+		$image = $stmt->fetch(PDO::FETCH_ASSOC);
+		if (!$image)
+			return null;
+		$stmt = $db->prepare("
+			SELECT comments.*, users.username
+			FROM comments
+			JOIN users ON users.id = comments.user_id
+			WHERE comments.image_id = ?
+			ORDER BY comments.created_at ASC
+		");
+		$stmt->execute([$id]);
+		$image['comments'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		return $image;
 	}
 
 	public static function create(int $userId, string $path): void {
@@ -28,7 +69,7 @@ class GalleryService
 			throw new Exception("No file uploaded");
 		}
 		if ($file['error'] !== UPLOAD_ERR_OK) {
-			throw new Exception("Upload failed");
+			throw new Exception("Upload error code: " . $file['error']);
 		}
 		// Limit file size to 5MB
 		$maxSize = 5 * 1024 * 1024;
@@ -53,7 +94,8 @@ class GalleryService
 		if (!move_uploaded_file($file['tmp_name'], $destination)) {
 			throw new Exception("Failed to save file");
 		}
-		self::reencodeImage($destination, $mime);
+		if ($mime !== 'image/gif')
+			self::reencodeImage($destination, $mime);
 		self::create($userId, $filename);
 	}
 
@@ -70,15 +112,23 @@ class GalleryService
 				imagepng($image, $path, 6);
 				break;
 
-			case 'image/gif':
-				$image = imagecreatefromgif($path);
-				imagegif($image, $path);
-				break;
-
 			default:
 				return;
 		}
 		imagedestroy($image);
+	}
+
+	public static function byUser(int $userId): array
+	{
+		$db = Database::get();
+		$stmt = $db->prepare("
+			SELECT *
+			FROM images
+			WHERE user_id = ?
+			ORDER BY created_at DESC
+		");
+		$stmt->execute([$userId]);
+		return $stmt->fetchAll();
 	}
 
 	public static function toggleLike(int $userId, int $imageId): void

@@ -7,11 +7,13 @@ class AuthController {
 
 	private AuthService $service;
 
-	public function __construct(){
+	public function __construct()
+	{
 		$this->service = new AuthService;
 	}
 
-	public function login() {
+	public function login()
+	{
 		Auth::guest();
 
 		$email = $_POST['email'] ?? '';
@@ -25,7 +27,8 @@ class AuthController {
 		exit;
 	}
 
-	public function signup() {
+	public function signup()
+	{
 		Auth::guest();
 		$result = $this->service->signup($_POST);
 		if ($result['success'])
@@ -35,14 +38,16 @@ class AuthController {
 		exit;
 	}
 
-	public function logout(): void {
+	public function logout(): void
+	{
 		Auth::check();
 		$this->service->logout();
 		header('Location: /');
 		exit;
 	}
 
-	public function confirm() {
+	public function confirm()
+	{
 		$token = $_GET['token'] ?? '';
 		if (!$token)
 		{
@@ -53,6 +58,43 @@ class AuthController {
 			echo "Email confirmed. You can now login";
 		else
 			echo "Invalid or expired token.";
+	}
+
+	public function showLogin(): void
+	{
+		if (isset($_SESSION['user_id'])) {
+			header('Location: /');
+			exit;
+		}
+
+		require __DIR__ . '/../views/login.php';
+	}
+
+	public function showSignup(): void
+	{
+		if (isset($_SESSION['user_id'])) {
+			header('Location: /');
+			exit;
+		}
+
+		require __DIR__ . '/../views/signup.php';
+	}
+
+	public function show(int $id): void
+	{
+		$image = GalleryService::find($id);
+		if (!$image) {
+			http_response_code(404);
+			echo "Post not found";
+			return;
+		}
+		$image['comments'] = Comment::forImage($id);
+		require __DIR__ . '/../views/post.php';
+	}
+
+	public function create(): void
+	{
+		require __DIR__ . '/../views/create.php';
 	}
 }
 

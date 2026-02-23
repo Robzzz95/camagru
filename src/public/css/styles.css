@@ -135,33 +135,10 @@ body {
 	height: 32px;
 }
 
-/* .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 10px;
-  padding: 10px;
-} */
-
 button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+	opacity: 0.5;
+	cursor: not-allowed;
 }
-
-/* .gallery-item {
-	background: white;
-	padding: 10px;
-	border: 1px solid #ddd;
-}
-
-.gallery-item img {
-	width: 100%;
-	border-radius: 8px;
-}
-
-.comments {
-	font-size: 13px;
-	color: #444;
-} */
 
 .auth-wrapper {
 	min-height: calc(100vh - 60px);
@@ -231,6 +208,93 @@ button:disabled {
 	background: #e6ffed;
 	color: #007a29;
 	border: 1px solid #b3ffd1;
+}
+
+.create-wrapper {
+	display: flex;
+	justify-content: space-between;
+	max-width: 1200px;
+	margin: 40px auto;
+	gap: 40px;
+}
+
+.editor {
+	width: 78%;
+}
+
+.sidebar {
+	width: 20%;
+}
+
+.editor-stage {
+	position: relative;
+	width: 600px;
+	height: 600px;
+	/* aspect-ratio: 1 / 1; */
+	background: #eee;
+}
+
+video, canvas, #stickerLayer {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+}
+
+video {
+	z-index: 1;
+}
+
+canvas {
+	z-index: 2;
+}
+
+#stickerLayer {
+	z-index: 3;
+	pointer-events: none;
+}
+
+.sidebar-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 10px;
+}
+
+.sidebar-grid img {
+	width: 100%;
+	height: 120px;
+	object-fit: cover;
+	border-radius: 6px;
+}
+
+.stickers {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.sticker-option {
+	width: 70px;
+	cursor: pointer;
+	border: 2px solid transparent;
+	border-radius: 8px;
+	transition: 0.2s ease;
+}
+
+.sticker-option:hover {
+	transform: scale(1.05);
+}
+
+.sticker-option.selected {
+	border: 2px solid red;
+	box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.live-sticker {
+	position: absolute;
+	cursor: move;
+	pointer-events: auto;
 }
 
 

@@ -18,16 +18,19 @@ class Router
 		$this->get('/gallery', 'GalleryController@index');
 		$this->get('/profile', 'ProfileController@index', true);
 		$this->get('/settings', 'SettingsController@index', true);
-		$this->get('/login', fn() => require __DIR__ . '/../views/login.php');
-		$this->get('/signup', fn() => require __DIR__ . '/../views/signup.php');
+		$this->get('/login', 'AuthController@showLogin');
+		$this->get('/signup', 'AuthController@showSignup');
 		$this->get('/confirm', 'AuthController@confirm');
 		$this->get('/logout', 'AuthController@logout', true);
+		$this->get('/post/{id}', 'GalleryController@show');
+		$this->get('/create', 'GalleryController@create', true);
 
 		// ---------- POST ----------
 		$this->post('/signup', 'AuthController@signup');
 		$this->post('/login', 'AuthController@login');
 
-		$this->post('/upload', 'GalleryController@upload', true);
+		// $this->post('/upload', 'GalleryController@upload', true);
+		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);
 		$this->post('/delete', 'GalleryController@delete', true);
 	}
@@ -49,28 +52,43 @@ class Router
 		$uri = rtrim($uri, '/') ?: '/';
 
 		$routes = $method === 'POST' ? $this->postRoutes : $this->getRoutes;
-		if (!isset($routes[$uri])) {
-			http_response_code(404);
-			echo 'Not found';
-			return;
-		}
+		foreach ($routes as $routeUri => $route)
+		{
+			$pattern = preg_replace('#\{[a-zA-Z]+\}#', '([0-9]+)', $routeUri);
+			$pattern = '#^' . $pattern . '$#';
 
-		$route = $routes[$uri];
-		if ($route['auth']) {
-			require_once __DIR__ . '/../middleware/Auth.php';
-			Auth::requireLogin();
+			if (preg_match($pattern, $uri, $matches))
+			{
+				array_shift($matches);
+
+				if ($route['auth'])
+				{
+					require_once __DIR__ . '/../middleware/Auth.php';
+					Auth::requireLogin();
+				}
+				$this->runActionWithParams($route['action'], $matches);
+				return;
+			}
 		}
-		$this->runAction($route['action']);
+		http_response_code(404);;
 	}
 
-	private function runAction($action): void
+	private function runActionWithParams(string $action, array $params = [])
 	{
-		if (is_callable($action)) {
-			$action();
-			return;
+		[$controllerName, $method] = explode('@', $action);
+		$controllerPath = __DIR__ . '/../controllers/' . $controllerName . '.php';
+		if (!file_exists($controllerPath)) {
+			throw new Exception("Controller file not found: $controllerPath");
 		}
-		[$controller, $method] = explode('@', $action);
-		require_once __DIR__ . '/../controllers/' . $controller . '.php';
-		(new $controller())->$method();
+		require_once $controllerPath;
+		if (!class_exists($controllerName)) {
+			throw new Exception("Controller class not found: $controllerName");
+		}
+		$controller = new $controllerName();
+		$params = array_map(function ($param) {
+			return is_numeric($param) ? (int)$param : $param;
+		}, $params);
+
+		return call_user_func_array([$controller, $method], $params);
 	}
 }
