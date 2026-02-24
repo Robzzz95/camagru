@@ -6,14 +6,14 @@ body {
 
 /* Center feed */
 .feed {
-	max-width: 600px;
+	max-width: 500px;
 	margin: 40px auto;
 }
 
 /* Post card */
 .post {
 	background: white;
-	border: 1px solid #dbdbdb;
+	border: 1px solid #ddd;
 	border-radius: 8px;
 	margin-bottom: 30px;
 	overflow: hidden;
@@ -21,25 +21,36 @@ body {
 
 /* Header */
 .post-header {
-	padding: 12px 16px;
-	font-weight: 600;
-	font-size: 14px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 15px;
+}
+
+.delete-post-btn {
+	background: #e53935;
+	border: none;
+	color: white;
+	padding: 5px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 12px;
 }
 
 /* Image */
 .post-image img {
 	width: 100%;
 	display: block;
-	aspect-ratio: 1 / 1;
-	object-fit: cover;
+	/* aspect-ratio: 1 / 1;
+	object-fit: cover; */
 }
 
 /* Actions */
 .post-actions {
-	padding: 10px 16px;
+	padding: 10px 15px;
 	display: flex;
 	align-items: center;
-	gap: 10px;
+	/* gap: 10px; */
 }
 
 .like-btn {
@@ -56,12 +67,83 @@ body {
 
 /* Comments */
 .post-comments {
-	padding: 0 16px 16px;
+	padding: 0 15px 15px;
 	font-size: 14px;
 }
 
 .post-comments p {
 	margin: 4px 0;
+}
+
+.comment-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.delete-comment-btn {
+	background: none;
+	border: none;
+	color: red;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+.view-comments {
+	color: #777;
+	cursor: pointer;
+	margin-bottom: 5px;
+}
+
+.post-modal {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.7);
+	display: none;
+	justify-content: center;
+	align-items: center;
+	z-index: 42;
+}
+
+.post-modal-inner {
+	background: white;
+	width: 500px;
+	max-height: 90vh;
+	border-radius: 12px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.post-image img {
+	width: 100%;
+	display: block;
+}
+
+.post-sidebar {
+	padding: 15px;
+	overflow-y: auto;
+	max-height: 300px;
+}
+
+.post-comments {
+	margin-top: 10px;
+	max-height: 150px;
+	overflow-y: auto;
+}
+
+#commentForm {
+	display: flex;
+	margin-top: 10px;
+}
+
+#commentForm input {
+	flex: 1;
+	padding: 8px;
+}
+
+#commentForm button {
+	padding: 8px 12px;
 }
 
 /* Delete button */

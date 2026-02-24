@@ -52,14 +52,22 @@ class GalleryController
 		exit;
 	}
 
-	public function show(int $id): void {
-		$image = GalleryService::find($id);
-		if (!$image) {
-			http_response_code(404);
-			echo "Post not found";
-			return;
-		}
-		require __DIR__ . '/../views/post.php';
+	public function show($id)
+	{
+	    $image = GalleryService::find((int)$id);
+	    if (!$image) {
+	        http_response_code(404);
+	        echo "Post not found";
+	        exit;
+	    }
+	    // If AJAX → return modal partial
+	    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+	        require __DIR__ . '/../views/post.php';
+	        exit;
+	    }
+	    // If direct access → redirect back to gallery
+	    header("Location: /gallery");
+	    exit;
 	}
 
 	public function store(): void
@@ -105,6 +113,39 @@ class GalleryController
 			]);
 			exit;
 		}
+	}
+
+	public function comment(): void
+	{
+	    header('Content-Type: application/json');
+	    try {
+	        Auth::requireLogin();
+	        $imageId = (int)($_POST['image_id'] ?? 0);
+	        $content = trim($_POST['content'] ?? '');
+	        if (!$imageId || $content === '')
+	            throw new Exception("Invalid comment");
+
+	        $db = Database::get();
+	        $stmt = $db->prepare("
+	            INSERT INTO comments (user_id, image_id, content)
+	            VALUES (?, ?, ?)
+	        ");
+	        $stmt->execute([
+	            (int)$_SESSION['user_id'],
+	            $imageId,
+	            $content
+	        ]);
+	        echo json_encode(['success' => true]);
+	        exit;
+
+	    } catch (Throwable $e) {
+	        http_response_code(400);
+	        echo json_encode([
+	            'success' => false,
+	            'error' => $e->getMessage()
+	        ]);
+	        exit;
+	    }
 	}
 }
 

@@ -33,6 +33,7 @@ class Router
 		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);
 		$this->post('/delete', 'GalleryController@delete', true);
+		$this->post('/comment', 'GalleryController@comment', true);
 	}
 
 	private function get(string $uri, $action, bool $auth = false): void

@@ -9,7 +9,8 @@ class GalleryService
 		$db = Database::get();
 		$stmt = $db->query("
 			SELECT images.*, users.username,
-			(SELECT COUNT(*) FROM likes WHERE likes.image_id = images.id) AS likes_count
+			(SELECT COUNT(*) FROM likes WHERE likes.image_id = images.id) AS likes_count,
+			(SELECT COUNT(*) FROM comments WHERE comments.image_id = images.id) AS comments_count
 			FROM images
 			JOIN users ON users.id = images.user_id
 			ORDER BY images.created_at DESC
@@ -36,7 +37,9 @@ class GalleryService
 	{
 		$db = Database::get();
 		$stmt = $db->prepare("
-			SELECT images.*, users.username
+			SELECT images.*, users.username,
+			(SELECT COUNT(*) FROM likes WHERE likes.image_id = images.id) AS likes_count,
+			(SELECT COUNT(*) FROM comments WHERE comments.image_id = images.id) AS comments_count
 			FROM images
 			JOIN users ON users.id = images.user_id
 			WHERE images.id = ?

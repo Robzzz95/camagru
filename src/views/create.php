@@ -56,6 +56,7 @@ const fileInput = document.getElementById("fileInput");
 let stream = null;
 let cameraOn = false;
 let selectedStickerSrc = null;
+let animationFrameId = null;
 
 /* ================================= */
 /* FORCE FIXED CANVAS SIZE (IMPORTANT) */
@@ -67,6 +68,26 @@ function setupCanvas() {
 }
 
 setupCanvas();
+
+/* ================================= */
+/* WEBCAM DRAW LOOP */
+/* ================================= */
+
+function startDrawLoop() {
+	function draw() {
+		if (!cameraOn) return;
+		ctx.drawImage(video, 0, 0, 600, 600);
+		animationFrameId = requestAnimationFrame(draw);
+	}
+	draw();
+}
+
+function stopDrawLoop() {
+	if (animationFrameId) {
+		cancelAnimationFrame(animationFrameId);
+		animationFrameId = null;
+	}
+}
 
 /* ================================= */
 /* CAMERA TOGGLE */
@@ -81,10 +102,13 @@ toggleCameraBtn.onclick = async () => {
 			await video.play();
 
 			cameraOn = true;
-			video.style.display = "block";
-			canvas.style.display = "none";
+			video.style.display = "none";   // hide <video>, we paint it ourselves
+			canvas.style.display = "block"; // canvas shows the live feed
 			captureBtn.style.display = "inline-block";
+			saveBtn.style.display = "none";
 			toggleCameraBtn.textContent = "Stop Webcam";
+
+			startDrawLoop();
 
 		} catch (err) {
 			alert("Camera access denied");
@@ -96,6 +120,7 @@ toggleCameraBtn.onclick = async () => {
 };
 
 function stopCamera() {
+	stopDrawLoop();
 	if (stream) {
 		stream.getTracks().forEach(track => track.stop());
 		video.srcObject = null;
@@ -116,6 +141,9 @@ fileInput.addEventListener("change", function () {
 
 	const file = this.files[0];
 	if (!file) return;
+
+	// If camera is on, turn it off first
+	if (cameraOn) stopCamera();
 
 	const reader = new FileReader();
 	reader.onload = function (e) {
@@ -162,7 +190,6 @@ canvas.addEventListener("click", function (e) {
 
 	if (!selectedStickerSrc) return;
 
-	// Use stickerLayer rect since that's where the sticker lives
 	const rect = stickerLayer.getBoundingClientRect();
 	const x = e.clientX - rect.left;
 	const y = e.clientY - rect.top;
@@ -176,7 +203,7 @@ canvas.addEventListener("click", function (e) {
 	sticker.style.width = size + "px";
 	sticker.style.left = (x - size / 2) + "px";
 	sticker.style.top  = (y - size / 2) + "px";
-	sticker.style.zIndex = "10";  // force above everything
+	sticker.style.zIndex = "10";
 	sticker.style.pointerEvents = "auto";
 
 	stickerLayer.appendChild(sticker);
@@ -229,15 +256,19 @@ function makeInteractive(el) {
 function mergeStickersIntoCanvas() {
 	return new Promise((resolve) => {
 		const stickers = [...document.querySelectorAll(".live-sticker")];
+
 		if (stickers.length === 0) {
 			stickerLayer.innerHTML = "";
 			resolve();
 			return;
 		}
+
 		const canvasRect = canvas.getBoundingClientRect();
 		const scaleX = canvas.width / canvasRect.width;
 		const scaleY = canvas.height / canvasRect.height;
+
 		let loaded = 0;
+
 		function onStickerDrawn() {
 			loaded++;
 			if (loaded === stickers.length) {
@@ -247,23 +278,22 @@ function mergeStickersIntoCanvas() {
 		}
 
 		stickers.forEach(sticker => {
-			// Capture position/size NOW before DOM is touched
-			const x = parseFloat(sticker.style.left) * scaleX;
-			const y = parseFloat(sticker.style.top) * scaleY;
-			const size = parseFloat(sticker.style.width) * scaleX; // use style.width, NOT offsetWidth
+			const x    = parseFloat(sticker.style.left)  * scaleX;
+			const y    = parseFloat(sticker.style.top)   * scaleY;
+			const size = parseFloat(sticker.style.width) * scaleX;
+
 			const img = new Image();
 			img.crossOrigin = "anonymous";
+
 			img.onload = () => {
 				ctx.drawImage(img, x, y, size, size);
 				onStickerDrawn();
 			};
-			img.onerror = () => {
-				// Still count it so we don't hang forever
-				onStickerDrawn();
-			};
+
+			img.onerror = () => onStickerDrawn();
+
 			img.src = sticker.src;
-			// Only use complete if BOTH complete AND naturalWidth > 0 (truly loaded)
-			// And unset onload first to avoid double firing
+
 			if (img.complete && img.naturalWidth > 0) {
 				img.onload = null;
 				ctx.drawImage(img, x, y, size, size);
@@ -272,6 +302,21 @@ function mergeStickersIntoCanvas() {
 		});
 	});
 }
+
+/* ================================= */
+/* CAPTURE FROM WEBCAM */
+/* ================================= */
+
+captureBtn.onclick = () => {
+
+	if (!cameraOn) return;
+
+	// Freeze the current frame — last drawn frame stays on canvas
+	stopDrawLoop();
+	stopCamera();
+
+	saveBtn.style.display = "inline-block";
+};
 
 /* ================================= */
 /* SAVE POST */
@@ -283,7 +328,9 @@ saveBtn.onclick = async () => {
 		alert("No image to post");
 		return;
 	}
+
 	await mergeStickersIntoCanvas();
+
 	const imageData = canvas.toDataURL("image/jpeg", 0.9);
 	try {
 		const response = await fetch("/gallery/store", {
@@ -301,23 +348,6 @@ saveBtn.onclick = async () => {
 		console.error(err);
 		alert("Server error");
 	}
-};
-
-/* ================================= */
-/* CAPTURE FROM WEBCAM */
-/* ================================= */
-
-captureBtn.onclick = async () => {
-
-	if (!cameraOn)
-		return;
-	setupCanvas();
-	ctx.clearRect(0, 0, 600, 600);
-	ctx.drawImage(video, 0, 0, 600, 600);
-	video.style.display = "none";
-	canvas.style.display = "block";
-	stopCamera();
-	saveBtn.style.display = "inline-block";
 };
 </script>
 
