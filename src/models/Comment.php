@@ -16,4 +16,11 @@ class Comment
 		return ($stmt->fetchAll());
 	}
 
+	public static function delete($commentId, $userId) {
+		$db = Database::get();
+		$stmt = $db->prepare("DELETE FROM comments WHERE id = ?
+				AND (user_id = ? OR image_id IN (
+				SELECT id FROM images WHERE user_id = ?))");
+		return $stmt->execute([$commentId, $userId, $userId]);
+	}
 }

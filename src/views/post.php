@@ -19,6 +19,9 @@
 
 	<div class="post-sidebar">
 		<p>❤️ <?= (int)$image['likes_count'] ?> likes</p>
+		<form class="likeForm" data-id="<?= $image['id'] ?>">
+			<button type="submit">❤️</button>
+		</form>
 		<div class="comments">
 			<?php foreach ($image['comments'] as $comment): ?>
 				<div class="comment-row">
@@ -47,3 +50,22 @@
 		<?php endif; ?>
 	</div>
 </div>
+
+<script>
+document.addEventListener("submit", async function(e) {
+
+	if (e.target.classList.contains("likeForm")) {
+		e.preventDefault();
+		const imageId = e.target.dataset.id;
+		await fetch("/like", {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: `image_id=${imageId}`
+		});
+		const reload = await fetch(`/post/${imageId}`, {
+			headers: { "X-Requested-With": "XMLHttpRequest" }
+		});
+		document.getElementById("postModalBody").innerHTML = await reload.text();
+	}
+});
+</script>
