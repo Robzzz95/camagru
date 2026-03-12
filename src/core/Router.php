@@ -13,10 +13,14 @@ class Router
 
 	private function registerRoutes(): void
 	{
-		// ---------- GET ----------
+		//GET
 		$this->get('/', 'GalleryController@index');
 		$this->get('/gallery', 'GalleryController@index');
+		$this->get('/feed/posts', 'GalleryController@morePosts');
 		$this->get('/profile', 'ProfileController@index', true);
+		$this->get('/profile/{id}', 'ProfileController@index', true);
+		$this->get('/profile/{id}/posts', 'ProfileController@morePosts');
+		$this->get('/profile/posts', 'ProfileController@morePosts');
 		$this->get('/settings', 'SettingsController@index', true);
 		$this->get('/login', 'AuthController@showLogin');
 		$this->get('/signup', 'AuthController@showSignup');
@@ -24,16 +28,17 @@ class Router
 		$this->get('/logout', 'AuthController@logout', true);
 		$this->get('/post/{id}', 'GalleryController@show');
 		$this->get('/create', 'GalleryController@create', true);
+		$this->get('/comments', 'CommentController@index');
 
-		// ---------- POST ----------
+		//POST
 		$this->post('/signup', 'AuthController@signup');
 		$this->post('/login', 'AuthController@login');
-
 		// $this->post('/upload', 'GalleryController@upload', true);
 		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);
 		$this->post('/delete', 'GalleryController@delete', true);
-		$this->post('/comment', 'GalleryController@comment', true);
+		$this->post('/comment', 'CommentController@store', true);
+		$this->post('/comment/delete', 'CommentController@delete', true);
 	}
 
 	private function get(string $uri, $action, bool $auth = false): void
@@ -57,21 +62,20 @@ class Router
 		{
 			$pattern = preg_replace('#\{[a-zA-Z]+\}#', '([0-9]+)', $routeUri);
 			$pattern = '#^' . $pattern . '$#';
-
 			if (preg_match($pattern, $uri, $matches))
 			{
 				array_shift($matches);
-
 				if ($route['auth'])
 				{
-					require_once __DIR__ . '/../middleware/Auth.php';
+					require_once __DIR__ . '/../core/Auth.php';
 					Auth::requireLogin();
 				}
 				$this->runActionWithParams($route['action'], $matches);
-				return;
+				return ;
 			}
 		}
-		http_response_code(404);;
+		//add a proper view later
+		http_response_code(404);
 	}
 
 	private function runActionWithParams(string $action, array $params = [])
@@ -87,9 +91,9 @@ class Router
 		}
 		$controller = new $controllerName();
 		$params = array_map(function ($param) {
-			return is_numeric($param) ? (int)$param : $param;
+			return (is_numeric($param) ? (int)$param : $param);
 		}, $params);
 
-		return call_user_func_array([$controller, $method], $params);
+		return (call_user_func_array([$controller, $method], $params));
 	}
 }

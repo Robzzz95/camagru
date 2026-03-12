@@ -1,46 +1,35 @@
 <?php
+declare(strict_types=1);
+require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../core/Auth.php';
 
-require_once __DIR__ . '/../core/Database.php';
+class AuthService
+{
+	private User $user;
 
-class AuthService {
+	public function __construct()
+	{
+		$this->user = new User;
+	}
 
-	// ----------------
-	// LOGIN
-	// ----------------
-	public function login(string $email, string $password): bool {
-		$db = Database::get();
-		$stmt = $db->prepare("SELECT id, password_hash, email_confirmed FROM users WHERE email = ?");
-		$stmt->execute([$email]);
-		$user = $stmt->fetch();
-
+	public function login(string $email, string $password): bool
+	{
+		$user = $this->user->getByEmail($email);
 		if (!$user)
-			return (false);
+			return false;
 		if (!password_verify($password, $user['password_hash']))
-			return (false);
+			return false;
 		if (!$user['email_confirmed'])
-			return (false);
+			 return false;
 
-		$_SESSION['user_id'] = $user['id'];
+		Auth::login($user['id']);
 		return (true);
 	}
 
-	// ----------------
-	// LOGOUT
-	// ----------------
-	public function logout(): void {
-		$_SESSION = [];
-		session_destroy();
-		header('Location: /');
-		exit;
-	}
-
-	// ----------------
-	// SIGNUP
-	// ----------------
-	public function signup(array $data): array {
-		$db = Database::get();
+	public function signup(array $data): array
+	{
 		$username = trim($data['username'] ?? '');
-		$email = strtolower(trim($data['email'] ?? ''));
+		$email	= strtolower(trim($data['email'] ?? ''));
 		$password = $data['password'] ?? '';
 
 		if (!$username || !$email || !$password)
@@ -51,153 +40,19 @@ class AuthService {
 			return ['success' => false, 'message' => 'Invalid username'];
 		if (strlen($password) < 8)
 			return ['success' => false, 'message' => 'Password too short'];
-
-		// existing user check
-		$stmt = $db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-		$stmt->execute([$username, $email]);
-		if ($stmt->fetch())
+		if ($this->user->getByUsername($username) || $this->user->getByEmail($email))
 			return ['success' => false, 'message' => 'User already exists'];
 
-		$hash = password_hash($password, PASSWORD_DEFAULT);
+		$hash  = password_hash($password, PASSWORD_DEFAULT);
 		$token = bin2hex(random_bytes(16));
-		$stmt = $db->prepare("
-			INSERT INTO users (username,email,password_hash,email_confirmed,confirmation_token)
-			VALUES (?,?,?,0,?)
-		");
-		$stmt->execute([$username,$email,$hash,$token]);
-
-		// mailhog will catch this
-		$link = $_ENV['APP_URL'] . "/confirm?token=$token";
-		mail($email, "Confirm account", "Confirm here:\n$link",	"From: camagru@local");
-		return ['success' => true];
+		$this->user->create($username, $email, $hash, $token);
+		$link = ($_ENV['APP_URL'] ?? '') . "/confirm?token=$token";
+		mail($email, "Confirm account", "Confirm here:\n$link", "From: camagru@local");
+		return (['success' => true]);
 	}
 
-	//-------------
-	//confirm email
-	//-------------
 	public function confirmEmail(string $token): bool
 	{
-		$pdo = Database::get();
-		$stmt = $pdo->prepare("UPDATE users SET email_confirmed = 1, confirmation_token = NULL WHERE confirmation_token = ?");
-		$stmt->execute([$token]);
-		return $stmt->rowCount() === 1;
+		return ($this->user->confirmEmail($token));
 	}
 }
-
-
-
-// class AuthController {
-
-// 	private PDO $pdo;
-
-// 	public function __construct() {
-// 		$this->pdo = Database::getConnection();
-// 	}
-
-	// // ------------------------------
-	// // Email confirmation
-	// // ------------------------------
-	// public function confirmEmail(string $token): array {
-	// 	$stmt = $this->pdo->prepare("SELECT id, email_confirmed FROM users WHERE confirmation_token = ?");
-	// 	$stmt->execute([$token]);
-	// 	$user = $stmt->fetch();
-
-	// 	if (!$user) {
-	// 		return ['success' => false, 'message' => 'Invalid confirmation token.'];
-	// 	}
-	// 	if ($user['email_confirmed']) {
-	// 		return ['success' => false, 'message' => 'Email already confirmed.'];
-	// 	}
-	// 	$stmt = $this->pdo->prepare("
-	// 		UPDATE users SET email_confirmed = 1, confirmation_token = NULL WHERE id = ?
-	// 	");
-	// 	$stmt->execute([$user['id']]);
-	// 	// header('Location: /login');
-	// 	// exit;
-	// 	return ['success' => true, 'message' => 'Email confirmed. You can now log in.'];
-	// }
-
-	// // ------------------------------
-	// // Password reset request
-	// // ------------------------------
-	// public function requestPasswordReset(string $email): array {
-	// 	$email = strtolower(trim($email));
-	// 	if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-	// 		return ['success' => true, 'message' => 'If the email exists, a reset link was sent.'];
-	// 	}
-	// 	$stmt = $this->pdo->prepare("SELECT id FROM users WHERE email = ?");
-	// 	$stmt->execute([$email]);
-	// 	$user = $stmt->fetch();
-	// 	if (!$user) {
-	// 		return ['success' => true, 'message' => 'If the email exists, a reset link was sent.'];
-	// 	}
-	// 	$token = bin2hex(random_bytes(32));
-	// 	$stmt = $this->pdo->prepare(
-	// 		"UPDATE users
-	// 		 SET reset_token = ?, reset_expires = DATE_ADD(NOW(), INTERVAL 1 HOUR)
-	// 		 WHERE id = ?"
-	// 	);
-	// 	$stmt->execute([$token, $user['id']]);
-	// 	$resetLink = $_ENV['APP_URL'] . "/reset?token=$token";
-	// 	$headers = implode("\r\n", [
-	// 		'From: Camagru <no-reply@camagru.local>',
-	// 		'Reply-To: no-reply@camagru.local',
-	// 		'MIME-Version: 1.0',
-	// 		'Content-Type: text/plain; charset=UTF-8',
-	// 		'X-Mailer: PHP/' . phpversion(),
-	// 	]);
-	// 	$subject = "Password reset";
-	// 	mail($email, $subject, "Reset here: $resetLink", $headers);
-	// 	return ['success' => true, 'message' => 'If the email exists, a reset link was sent.'];
-	// }
-
-// 	// ------------------------------
-// 	// Password reset
-// 	// ------------------------------
-// 	public function resetPassword(string $token, string $newPassword): array
-// 	{
-// 		if (strlen($newPassword) < 8) {
-// 			return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
-// 		}
-// 		$stmt = $this->pdo->prepare(
-// 			"SELECT id FROM users
-// 			 WHERE reset_token = ? AND reset_expires > NOW()"
-// 		);
-// 		$stmt->execute([$token]);
-// 		$user = $stmt->fetch();
-// 		if (!$user) {
-// 			return ['success' => false, 'message' => 'Invalid or expired reset token.'];
-// 		}
-// 		$hash = password_hash($newPassword, PASSWORD_DEFAULT);
-// 		$stmt = $this->pdo->prepare(
-// 			"UPDATE users
-// 			 SET password_hash = ?, reset_token = NULL, reset_expires = NULL
-// 			 WHERE id = ?"
-// 		);
-// 		$stmt->execute([$hash, $user['id']]);
-// 		session_regenerate_id(true);
-// 		return ['success' => true, 'message' => 'Password reset successful.'];
-// 	}
-
-// 	public function changePassword(int $userId, string $current, string $new): array
-// 	{
-// 		if (!$current || !$new) {
-// 			return ['success' => false, 'message' => 'All fields are required.'];
-// 		}
-// 		if (strlen($new) < 8) {
-// 			return ['success' => false, 'message' => 'New password too short.'];
-// 		}
-// 		$stmt = $this->pdo->prepare("SELECT password_hash FROM users WHERE id = ?");
-// 		$stmt->execute([$userId]);
-// 		$user = $stmt->fetch();
-// 		if (!$user || !password_verify($current, $user['password_hash'])) {
-// 			return ['success' => false, 'message' => 'Current password incorrect.'];
-// 		}
-// 		$newHash = password_hash($new, PASSWORD_DEFAULT);
-// 		$stmt = $this->pdo->prepare(
-// 			"UPDATE users SET password_hash = ? WHERE id = ?"
-// 		);
-// 		$stmt->execute([$newHash, $userId]);
-// 		return ['success' => true, 'message' => 'Password updated successfully.'];
-// 	}
-// }

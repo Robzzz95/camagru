@@ -1,5 +1,3 @@
-<?php require __DIR__ . '/layout/header.php'; ?>
-
 <div class="auth-wrapper">
 	<div class="auth-card">
 		<h2>Login</h2>
@@ -7,11 +5,7 @@
 			<input type="email" name="email" placeholder="Email" required>
 			<input type="password" name="password" placeholder="Password" required>
 			<button>Login</button>
-			<?php if (!empty($_GET['error'])): ?>
-				<p class="error">Invalid credentials</p>
-			<?php endif; ?>
 		</form>
+		<p>No account yet? <a href="/signup">Sign up</a></p>
 	</div>
 </div>
-
-<?php require __DIR__ . '/layout/footer.php'; ?>

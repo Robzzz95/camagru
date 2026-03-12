@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../middleware/Auth.php';
+require_once __DIR__ . '/../core/Auth.php';
 
 class SettingsController
 {

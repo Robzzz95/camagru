@@ -1,10 +1,11 @@
 <?php
-
+declare(strict_types=1);
 require_once __DIR__ . '/../services/AuthService.php';
-require_once __DIR__ . '/../middleware/Auth.php';
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
 
-class AuthController {
-
+class AuthController
+{
 	private AuthService $service;
 
 	public function __construct()
@@ -12,90 +13,63 @@ class AuthController {
 		$this->service = new AuthService;
 	}
 
-	public function login()
+	public function login(): void
 	{
 		Auth::guest();
-
 		$email = $_POST['email'] ?? '';
 		$password = $_POST['password'] ?? '';
-		if ($this->service->login($email, $password)) {
+
+		if ($this->service->login($email, $password))
 			header('Location: /');
-		}
-		else {
-			header('Location: /?error=login=1');
-		}
+		else
+			header('Location: /login?error=' . urlencode('Invalid credentials'));
 		exit;
 	}
 
-	public function signup()
+	public function signup(): void
 	{
 		Auth::guest();
 		$result = $this->service->signup($_POST);
+
 		if ($result['success'])
-			header('Location: /');
+			header('Location: /login?success=' . urlencode('Account created, please confirm your email'));
 		else
-			header('Location: /?error=' . urlencode($result['message']));
+			header('Location: /signup?error=' . urlencode($result['message']));
 		exit;
 	}
 
 	public function logout(): void
 	{
-		Auth::check();
-		$this->service->logout();
+		Auth::requireLogin();
+		Auth::logout();
 		header('Location: /');
 		exit;
 	}
 
-	public function confirm()
+	public function confirm(): void
 	{
 		$token = $_GET['token'] ?? '';
-		if (!$token)
-		{
-			echo "Invalid token";
-			return;
+		if (!$token) {
+			header('Location: /login?error=' . urlencode('Invalid token'));
+			exit;
 		}
+
 		if ($this->service->confirmEmail($token))
-			echo "Email confirmed. You can now login";
+			header('Location: /login?success=' . urlencode('Email confirmed, you can now log in'));
 		else
-			echo "Invalid or expired token.";
+			header('Location: /login?error=' . urlencode('Invalid or expired token'));
+		exit;
 	}
 
 	public function showLogin(): void
 	{
-		if (isset($_SESSION['user_id'])) {
-			header('Location: /');
-			exit;
-		}
-
-		require __DIR__ . '/../views/login.php';
+		Auth::guest();
+		(new View('login'))->render(); 
 	}
 
 	public function showSignup(): void
 	{
-		if (isset($_SESSION['user_id'])) {
-			header('Location: /');
-			exit;
-		}
-
-		require __DIR__ . '/../views/signup.php';
-	}
-
-	public function show(int $id): void
-	{
-		$image = GalleryService::find($id);
-		if (!$image) {
-			http_response_code(404);
-			echo "Post not found";
-			return;
-		}
-		$image['comments'] = Comment::forImage($id);
-		require __DIR__ . '/../views/post.php';
-	}
-
-	public function create(): void
-	{
-		require __DIR__ . '/../views/create.php';
+		Auth::guest();
+		(new View('signup'))->render(); 
 	}
 }
-
-

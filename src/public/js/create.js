@@ -1,48 +1,3 @@
-<?php require __DIR__ . '/layout/header.php'; ?>
-
-<div class="create-wrapper">
-
-	<!-- EDITOR -->
-	<div class="editor">
-		<h2>Create Post</h2>
-
-		<input type="file" id="fileInput" accept="image/*">
-		<button id="toggleCamera">Use Webcam</button>
-
-		<div class="editor-stage">
-			<video id="video" playsinline></video>
-			<canvas id="canvas"></canvas>
-			<div id="stickerLayer"></div>
-		</div>
-
-		<button id="captureBtn" style="display:none;">Capture</button>
-		<button id="saveBtn" style="display:none;">Post</button>
-
-		<h3>Stickers</h3>
-		<div class="stickers">
-			<?php
-			$assetsPath = $_SERVER['DOCUMENT_ROOT'] . '/assets';
-			$stickers = glob($assetsPath . '/*.png');
-			foreach ($stickers as $sticker):
-				$filename = basename($sticker); ?>
-				<img src="/assets/<?= $filename ?>" class="sticker-option">
-			<?php endforeach; ?>
-		</div>
-	</div>
-
-	<!-- SIDEBAR -->
-	<div class="sidebar">
-		<h3>Your Posts</h3>
-		<div class="sidebar-grid">
-			<?php foreach ($myImages as $img): ?>
-				<img src="/uploads/<?= htmlspecialchars($img['path']) ?>">
-			<?php endforeach; ?>
-		</div>
-	</div>
-
-</div>
-
-<script>
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -349,6 +304,3 @@ saveBtn.onclick = async () => {
 		alert("Server error");
 	}
 };
-</script>
-
-<?php require __DIR__ . '/layout/footer.php'; ?>

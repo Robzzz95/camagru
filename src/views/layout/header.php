@@ -8,15 +8,12 @@
 	<link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-
 <header class="topbar">
 	<div class="topbar-content">
 		<a href="/" class="logo">
-			<img src="/assets/favicon.ico" class="logo-icon" alt="logo">
-			Camagru
-		</a>
+			<img src="/assets/favicon.ico" class="logo-icon" alt="logo">Camagru</a>
 		<div>
-			<?php if (isset($_SESSION['user_id'])): ?>
+			<?php if (Auth::check()): ?>
 				<a href="/profile">Profile</a>
 				<a href="/create">Post</a>
 				<a href="/logout">Logout</a>

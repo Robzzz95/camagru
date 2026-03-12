@@ -1,26 +1,60 @@
 <?php
-
+declare(strict_types=1);
 require_once __DIR__ . '/../services/GalleryService.php';
-require_once __DIR__ . '/../middleware/Auth.php';
 require_once __DIR__ . '/../models/Comment.php';
-
+require_once __DIR__ . '/../core/Auth.php';
+require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../models/Like.php';
 
 class GalleryController
 {
+	private GalleryService $service;
+	private Comment $comment;
+
+	public function __construct()
+	{
+		$this->service = new GalleryService;
+		$this->comment = new Comment;
+	}
+
 	public function index(): void
 	{
-		$images = GalleryService::all();
-		require __DIR__ . '/../views/gallery.php';
+		$result = $this->service->all(5);
+		(new View('gallery'))->render(['images'  => $result['posts'],
+			'hasMore' => $result['hasMore'],]);
+	}
+
+	public function show(int $id): void
+	{
+		$image = $this->service->find($id);
+		if (!$image) {
+			//add a proper 404
+			http_response_code(404);
+			echo "Post not found";
+			exit;
+		}
+		// AJAX -> return modal partial, direct access -> back to gallery
+		if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']))
+		{
+			View::partial('post', ['image' => $image]);
+			exit;
+		}
+		$result = $this->service->all(5);
+		(new View('gallery'))->render(['images'	=> $result['posts'],
+			'hasMore'   => $result['hasMore'], 'openPostId' => $id,]);
+	}
+
+	public function create(): void
+	{
+		$myImages = $this->service->byUser(Auth::id())['posts'];
+		$stickers = array_map('basename', glob($_SERVER['DOCUMENT_ROOT'] . '/assets/*.png') ?: []);
+		(new View('create'))->render(['myImages' => $myImages, 'stickers' => $stickers]);
 	}
 
 	public function upload(): void
 	{
-		Auth::requireLogin();
 		try {
-			GalleryService::upload(
-				(int)$_SESSION['user_id'],
-				$_FILES['image'] ?? []
-			);
+			$this->service->upload(Auth::id(), $_FILES['image'] ?? []);
 			$_SESSION['flash_success'] = "Image uploaded successfully.";
 		} catch (Exception $e) {
 			$_SESSION['flash_error'] = $e->getMessage();
@@ -29,123 +63,64 @@ class GalleryController
 		exit;
 	}
 
-	public function create(): void
-	{
-		Auth::requireLogin();
-		$myImages = GalleryService::byUser((int)$_SESSION['user_id']);
-		require __DIR__ . '/../views/create.php';
-	}
-
-	public function like() {
-		Auth::requireLogin();
-		$imageId = (int)($_POST['image_id'] ?? 0);
-		GalleryService::toggleLike((int)$_SESSION['user_id'], $imageId);
-		header('Location: /');
-		exit;
-	}
-
-	public function delete() {
-		Auth::requireLogin();
-		$imageId = (int)($_POST['image_id'] ?? 0);
-		GalleryService::delete((int)$_SESSION['user_id'], $imageId);
-		header('Location: /');
-		exit;
-	}
-
-	public function show($id)
-	{
-	    $image = GalleryService::find((int)$id);
-	    if (!$image) {
-	        http_response_code(404);
-	        echo "Post not found";
-	        exit;
-	    }
-	    // If AJAX → return modal partial
-	    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-	        require __DIR__ . '/../views/post.php';
-	        exit;
-	    }
-	    // If direct access → redirect back to gallery
-	    header("Location: /gallery");
-	    exit;
-	}
-
 	public function store(): void
 	{
 		header('Content-Type: application/json');
 		try {
-			if (!isset($_SESSION['user_id']))
-				throw new Exception("Unauthorized");
-		
-			$raw = file_get_contents("php://input");
-			if (!$raw)
-				throw new Exception("Empty request body");
-			$data = json_decode($raw, true);
+			$data = json_decode(file_get_contents("php://input"), true);
 			if (!isset($data['image']))
 				throw new Exception("No image provided");
-			$base64 = $data['image'];
-			if (!preg_match('#^data:image/(png|jpeg);base64,#', $base64))
-				throw new Exception("Invalid image format");
-			$base64 = preg_replace('#^data:image/\w+;base64,#', '', $base64);
-			$decoded = base64_decode($base64, true);
-			if ($decoded === false)
-				throw new Exception("Base64 decode failed");
-			if (strlen($decoded) < 1000)
-				throw new Exception("Decoded image too small");
-			$uploadDir = __DIR__ . '/../public/uploads/';
-			if (!is_dir($uploadDir))
-				throw new Exception("Upload directory missing");
-			if (!is_writable($uploadDir))
-				throw new Exception("Upload directory not writable");
-			$filename = bin2hex(random_bytes(16)) . '.jpg';
-			$path = $uploadDir . $filename;
-			$written = file_put_contents($path, $decoded);
-			if ($written === false)
-				throw new Exception("Failed writing file");
-			GalleryService::create((int)$_SESSION['user_id'], $filename);
+
+			$this->service->storeBase64(Auth::id(), $data['image']);
 			echo json_encode(['success' => true]);
-			exit;
+
 		} catch (Throwable $e) {
-			http_response_code(500);
-			echo json_encode([
-				'success' => false,
-				'error' => $e->getMessage()
-			]);
-			exit;
+			http_response_code(400);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 		}
+		exit;
 	}
 
-	public function comment(): void
+	public function like(): void
 	{
-	    header('Content-Type: application/json');
-	    try {
-	        Auth::requireLogin();
-	        $imageId = (int)($_POST['image_id'] ?? 0);
-	        $content = trim($_POST['content'] ?? '');
-	        if (!$imageId || $content === '')
-	            throw new Exception("Invalid comment");
+		header('Content-Type: application/json');
+		try {
+			$imageId = (int)($_POST['image_id'] ?? 0);
+			if (!$imageId)
+				throw new Exception("Invalid image");
 
-	        $db = Database::get();
-	        $stmt = $db->prepare("
-	            INSERT INTO comments (user_id, image_id, content)
-	            VALUES (?, ?, ?)
-	        ");
-	        $stmt->execute([
-	            (int)$_SESSION['user_id'],
-	            $imageId,
-	            $content
-	        ]);
-	        echo json_encode(['success' => true]);
-	        exit;
+			$this->service->toggleLike(Auth::id(), $imageId);
+			$liked = (new Like)->exists(Auth::id(), $imageId);
+			echo json_encode(['success' => true, 'liked' => $liked]);
 
-	    } catch (Throwable $e) {
-	        http_response_code(400);
-	        echo json_encode([
-	            'success' => false,
-	            'error' => $e->getMessage()
-	        ]);
-	        exit;
-	    }
+		} catch (Throwable $e) {
+			http_response_code(400);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
 	}
-}
 
+	public function delete(): void
+	{
+		try {
+			$imageId = (int)($_POST['image_id'] ?? 0);
+			if (!$imageId)
+				throw new Exception("Invalid image");
+
+			$this->service->delete(Auth::id(), $imageId);
+		} catch (Throwable $e) {
+			$_SESSION['flash_error'] = $e->getMessage();
+		}
+		header('Location: /');
+		exit;
+	}
+
+	public function morePosts(): void
+	{
+		header('Content-Type: application/json');
+		$offset = (int)($_GET['offset'] ?? 0);
+		echo json_encode($this->service->all(5, $offset));
+		exit;
+	}
+
+}
