@@ -30,7 +30,8 @@ setupCanvas();
 
 function startDrawLoop() {
 	function draw() {
-		if (!cameraOn) return;
+		if (!cameraOn)
+			return;
 		ctx.drawImage(video, 0, 0, 600, 600);
 		animationFrameId = requestAnimationFrame(draw);
 	}
@@ -49,6 +50,7 @@ function stopDrawLoop() {
 /* ================================= */
 
 toggleCameraBtn.onclick = async () => {
+	canvas._uploadFile = null;
 
 	if (!cameraOn) {
 		try {
@@ -93,32 +95,43 @@ function stopCamera() {
 /* ================================= */
 
 fileInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (!file)
+		return;
 
-	const file = this.files[0];
-	if (!file) return;
+    if (cameraOn) stopCamera();
+    document.getElementById("gifPreview")?.remove();
 
-	// If camera is on, turn it off first
-	if (cameraOn) stopCamera();
+    if (file.type === "image/gif") {
+        // Store file THEN show preview — never touch canvas
+        canvas._uploadFile = file;
+        canvas.style.display = "none";
 
-	const reader = new FileReader();
-	reader.onload = function (e) {
+        const preview = document.createElement("img");
+        preview.id = "gifPreview";
+        preview.src = URL.createObjectURL(file);
+        preview.style.cssText = "width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;z-index:5;";
+        canvas.parentElement.appendChild(preview);
 
-		const uploadedImage = new Image();
+        saveBtn.style.display = "inline-block";
+        return;
+    }
 
-		uploadedImage.onload = function () {
-			setupCanvas();
-			ctx.clearRect(0, 0, 600, 600);
-			ctx.drawImage(uploadedImage, 0, 0, 600, 600);
-
-			video.style.display = "none";
-			canvas.style.display = "block";
-			saveBtn.style.display = "inline-block";
-		};
-
-		uploadedImage.src = e.target.result;
-	};
-
-	reader.readAsDataURL(file);
+    // JPEG/PNG only — canvas path
+    canvas._uploadFile = null;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const uploadedImage = new Image();
+        uploadedImage.onload = function () {
+            setupCanvas();
+            ctx.clearRect(0, 0, 600, 600);
+            ctx.drawImage(uploadedImage, 0, 0, 600, 600);
+            canvas.style.display = "block";
+            saveBtn.style.display = "inline-block";
+        };
+        uploadedImage.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 });
 
 /* ================================= */
@@ -143,7 +156,8 @@ document.querySelectorAll(".sticker-option").forEach(img => {
 
 canvas.addEventListener("click", function (e) {
 
-	if (!selectedStickerSrc) return;
+	if (!selectedStickerSrc)
+		return;
 
 	const rect = stickerLayer.getBoundingClientRect();
 	const x = e.clientX - rect.left;
@@ -160,6 +174,8 @@ canvas.addEventListener("click", function (e) {
 	sticker.style.top  = (y - size / 2) + "px";
 	sticker.style.zIndex = "10";
 	sticker.style.pointerEvents = "auto";
+	canvas._uploadFile = null;
+	saveBtn.style.display = "inline-block";
 
 	stickerLayer.appendChild(sticker);
 	makeInteractive(sticker);
@@ -233,8 +249,8 @@ function mergeStickersIntoCanvas() {
 		}
 
 		stickers.forEach(sticker => {
-			const x    = parseFloat(sticker.style.left)  * scaleX;
-			const y    = parseFloat(sticker.style.top)   * scaleY;
+			const x	= parseFloat(sticker.style.left)  * scaleX;
+			const y	= parseFloat(sticker.style.top)   * scaleY;
 			const size = parseFloat(sticker.style.width) * scaleX;
 
 			const img = new Image();
@@ -246,9 +262,7 @@ function mergeStickersIntoCanvas() {
 			};
 
 			img.onerror = () => onStickerDrawn();
-
 			img.src = sticker.src;
-
 			if (img.complete && img.naturalWidth > 0) {
 				img.onload = null;
 				ctx.drawImage(img, x, y, size, size);
@@ -264,12 +278,10 @@ function mergeStickersIntoCanvas() {
 
 captureBtn.onclick = () => {
 
-	if (!cameraOn) return;
-
-	// Freeze the current frame — last drawn frame stays on canvas
+	if (!cameraOn)
+		return;
 	stopDrawLoop();
 	stopCamera();
-
 	saveBtn.style.display = "inline-block";
 };
 
@@ -278,14 +290,34 @@ captureBtn.onclick = () => {
 /* ================================= */
 
 saveBtn.onclick = async () => {
-
 	if (canvas.width === 0) {
 		alert("No image to post");
 		return;
 	}
 
-	await mergeStickersIntoCanvas();
+	// If a raw file was uploaded, send it directly — preserves GIF/PNG
+	if (canvas._uploadFile) {
+		const formData = new FormData();
+		formData.append("image", canvas._uploadFile);
+		try {
+			const response = await fetch("/upload", {
+				method: "POST",
+				body: formData
+			});
+			const data = await response.json();
+			if (data.success)
+				window.location.href = "/";
+			else
+				alert(data.error || "Upload failed");
+		} catch (err) {
+			console.error(err);
+			alert("Server error");
+		}
+		return;
+	}
 
+	// Otherwise use canvas (webcam capture or sticker composition)
+	await mergeStickersIntoCanvas();
 	const imageData = canvas.toDataURL("image/jpeg", 0.9);
 	try {
 		const response = await fetch("/gallery/store", {
@@ -293,12 +325,11 @@ saveBtn.onclick = async () => {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ image: imageData })
 		});
-
 		const data = await response.json();
 		if (data.success)
-			window.location.reload();
+			window.location.href = "/";
 		else
-			alert(data.message || "Upload failed");
+			alert(data.error || "Upload failed");
 	} catch (err) {
 		console.error(err);
 		alert("Server error");

@@ -16,24 +16,27 @@ class Router
 		//GET
 		$this->get('/', 'GalleryController@index');
 		$this->get('/gallery', 'GalleryController@index');
-		$this->get('/feed/posts', 'GalleryController@morePosts');
+		$this->get('/feed/posts', 'GalleryController@morePosts');//to check
+		$this->get('/post/{id}', 'GalleryController@show');//to do 404
+
 		$this->get('/profile', 'ProfileController@index', true);
 		$this->get('/profile/{id}', 'ProfileController@index', true);
-		$this->get('/profile/{id}/posts', 'ProfileController@morePosts');
-		$this->get('/profile/posts', 'ProfileController@morePosts');
+		$this->get('/profile/{id}/posts', 'ProfileController@morePosts');//to check
+		$this->get('/profile/posts', 'ProfileController@morePosts');//to check!!!!
+
 		$this->get('/settings', 'SettingsController@index', true);
+
 		$this->get('/login', 'AuthController@showLogin');
 		$this->get('/signup', 'AuthController@showSignup');
 		$this->get('/confirm', 'AuthController@confirm');
 		$this->get('/logout', 'AuthController@logout', true);
-		$this->get('/post/{id}', 'GalleryController@show');
 		$this->get('/create', 'GalleryController@create', true);
-		$this->get('/comments', 'CommentController@index');
+		$this->get('/comments', 'CommentController@index');//to check
 
 		//POST
 		$this->post('/signup', 'AuthController@signup');
 		$this->post('/login', 'AuthController@login');
-		// $this->post('/upload', 'GalleryController@upload', true);
+		$this->post('/upload', 'GalleryController@upload', true);
 		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);
 		$this->post('/delete', 'GalleryController@delete', true);

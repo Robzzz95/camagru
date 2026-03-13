@@ -71,7 +71,7 @@ class GalleryService
 			throw new Exception("Invalid image file");
 
 		$allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif'];
-		$mime	 = $imageInfo['mime'];
+		$mime = $imageInfo['mime'];
 		if (!isset($allowed[$mime]))
 			throw new Exception("Unsupported image type");
 
@@ -89,9 +89,11 @@ class GalleryService
 
 	public function storeBase64(int $userId, string $base64): void
 	{
-		if (!preg_match('#^data:image/(png|jpeg);base64,#', $base64))
+		if (!preg_match('#^data:image/(png|jpeg|gif);base64,#', $base64, $matches))
 			throw new Exception("Invalid image format");
 
+		$mime = 'image/' . $matches[1];
+		$ext  = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
 		$decoded = base64_decode(
 			preg_replace('#^data:image/\w+;base64,#', '', $base64),
 			true
@@ -107,10 +109,12 @@ class GalleryService
 		}
 		unlink($tmp);
 
-		$filename = bin2hex(random_bytes(16)) . '.jpg';
+		$filename = bin2hex(random_bytes(16)) . '.' . $ext;
 		if (!file_put_contents(__DIR__ . '/../public/uploads/' . $filename, $decoded))
 			throw new Exception("Failed writing file");
 
+		if ($mime !== 'image/gif')
+			$this->reencodeImage(__DIR__ . '/../public/uploads/' . $filename, $mime);
 		$this->post->create($userId, $filename);
 	}
 

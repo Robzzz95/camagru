@@ -53,13 +53,14 @@ class GalleryController
 
 	public function upload(): void
 	{
+		header('Content-Type: application/json');
 		try {
 			$this->service->upload(Auth::id(), $_FILES['image'] ?? []);
-			$_SESSION['flash_success'] = "Image uploaded successfully.";
+			echo json_encode(['success' => true]);
 		} catch (Exception $e) {
-			$_SESSION['flash_error'] = $e->getMessage();
+			http_response_code(400);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 		}
-		header('Location: /');
 		exit;
 	}
 
