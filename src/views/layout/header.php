@@ -11,7 +11,8 @@
 <header class="topbar">
 	<div class="topbar-content">
 		<a href="/" class="logo">
-			<img src="/assets/favicon.ico" class="logo-icon" alt="logo">Camagru</a>
+			<img src="/assets/favicon.ico" class="logo-icon" alt="logo">
+			<div class="logotext">Camagru</div></a>
 		<div>
 			<?php if (Auth::check()): ?>
 				<a href="/profile">Profile</a>

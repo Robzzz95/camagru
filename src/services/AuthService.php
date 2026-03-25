@@ -55,4 +55,35 @@ class AuthService
 	{
 		return ($this->user->confirmEmail($token));
 	}
+
+	public function forgotPassword(string $email): void
+	{
+		// Always return void — never reveal if email exists
+		$user = $this->user->getByEmail($email);
+		if (!$user)
+			return;
+
+		$token = bin2hex(random_bytes(32));
+		$expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+		$this->user->setResetToken((int)$user['id'], $token, $expires);
+
+		$link = ($_ENV['APP_URL'] ?? '') . "/reset-password?token=$token";
+		$headers = "From: Camagru <no-reply@camagru.local>\r\nContent-Type: text/plain; charset=UTF-8";
+		mail($user['email'], "Password reset", "Reset your password here:\n$link\n\nThis link expires in 1 hour.", $headers);
+	}
+
+	public function resetPassword(string $token, string $newPassword): array
+	{
+		if (strlen($newPassword) < 8)
+			return ['success' => false, 'message' => 'Password must be at least 8 characters'];
+
+		$hash = password_hash($newPassword, PASSWORD_DEFAULT);
+		$ok = $this->user->resetPassword($token, $hash);
+
+		if (!$ok)
+			return ['success' => false, 'message' => 'Invalid or expired token'];
+
+		return ['success' => true];
+	}
 }

@@ -42,7 +42,7 @@ document.addEventListener("submit", async function(e) {
 
 		const feedBtn = document.querySelector(`.likeForm[data-id="${imageId}"] img`);
 		if (feedBtn)
-			feedBtn.src = data.liked ? '/assets/full_heart_icon.png' : '/assets/like_icon.svg';
+			feedBtn.src = data.liked ? '/assets/full_heart.png' : '/assets/heart.png';
 
 		if (e.target.closest("#postModal"))
 			await reloadModal(imageId);
@@ -231,7 +231,7 @@ if (feedSentinel) {
 					<form class="likeForm" data-id="${post.id}">
 						<input type="hidden" name="image_id" value="${post.id}">
 						<button class="like-btn">
-							<img src="/assets/${post.liked_by_me ? 'full_heart_icon.png' : 'like_icon.svg'}"
+							<img src="/assets/${post.liked_by_me ? 'full_heart.png' : 'heart.png'}"
 								 width="24" height="24" alt="like">
 						</button>
 					</form>

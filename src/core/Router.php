@@ -30,12 +30,20 @@ class Router
 		$this->get('/signup', 'AuthController@showSignup');
 		$this->get('/confirm', 'AuthController@confirm');
 		$this->get('/logout', 'AuthController@logout', true);
+		$this->get('/forgot-password', 'AuthController@showForgotPassword');
+		$this->get('/reset-password', 'AuthController@showResetPassword');
 		$this->get('/create', 'GalleryController@create', true);
 		$this->get('/comments', 'CommentController@index');//to check
-
+		
 		//POST
 		$this->post('/signup', 'AuthController@signup');
 		$this->post('/login', 'AuthController@login');
+		$this->post('/forgot-password', 'AuthController@forgotPassword');
+		$this->post('/reset-password',  'AuthController@resetPassword');
+		$this->post('/settings/username', 'SettingsController@updateUsername', true);
+		$this->post('/settings/email', 'SettingsController@updateEmail', true);
+		$this->post('/settings/password', 'SettingsController@updatePassword', true);
+		$this->post('/settings/delete', 'SettingsController@deleteAccount',  true);
 		$this->post('/upload', 'GalleryController@upload', true);
 		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);

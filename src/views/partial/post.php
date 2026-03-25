@@ -20,7 +20,7 @@
 			<?php if (Auth::check()): ?>
 				<form class="likeForm" data-id="<?= $image['id'] ?>">
 					<button class="like-btn">
-						<img src="/assets/<?= (int)$image['liked_by_me'] ? 'full_heart_icon.png' : 'like_icon.svg' ?>" width="24" height="24" alt="like">
+						<img src="/assets/<?= (int)$image['liked_by_me'] ? 'full_heart.png' : 'heart.png' ?>" width="24" height="24" alt="like">
 					</button>
 				</form>
 				<span class="likes-count"><?= (int)$image['like_count'] ?> likes</span>

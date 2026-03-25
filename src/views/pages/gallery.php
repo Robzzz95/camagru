@@ -15,7 +15,7 @@
 					<form class="likeForm" data-id="<?= $img['id'] ?>">
 						<input type="hidden" name="image_id" value="<?= $img['id'] ?>">
 						<button class="like-btn">
-							<img src="/assets/<?= (int)$img['liked_by_me'] ? 'full_heart_icon.png' : 'like_icon.svg' ?>" width="24" height="24" alt="like">
+							<img src="/assets/<?= (int)$img['liked_by_me'] ? 'full_heart.png' : 'heart.png' ?>" width="24" height="24" alt="like">
 						</button>
 					</form>
 					<span class="likes-count" data-id="<?= $img['id'] ?>"><?= $img['like_count'] ?> likes</span>

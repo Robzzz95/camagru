@@ -7,5 +7,6 @@
 			<button>Login</button>
 		</form>
 		<p>No account yet? <a href="/signup">Sign up</a></p>
+		<p><a href="/forgot-password">Forgot password?</p>
 	</div>
 </div>

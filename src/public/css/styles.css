@@ -1,7 +1,3 @@
-/* ============================================================
-   CAMAGRU — Instagram-faithful stylesheet
-   ============================================================ */
-
 @font-face {
 	font-family: 'Billabong';
 	src: url('../assets/Billabong.otf') format('opentype');
@@ -86,6 +82,12 @@ button { font-family: inherit; cursor: pointer; }
 	font-weight: 600;
 	color: var(--ig-text);
 	transition: opacity var(--transition);
+}
+
+.topbar-content a .logotext {
+	font-family: 'Billabong', cursive;
+	font-size: 28px;
+	color: var(--ig-text);
 }
 
 .topbar-content a:hover { opacity: 0.6; }
@@ -475,8 +477,6 @@ button { font-family: inherit; cursor: pointer; }
 	font-size: 16px;
 }
 
-/* .profile-meta span b { font-weight: 600; } */
-
 .profile-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -566,6 +566,85 @@ canvas { z-index: 2; }
 	object-fit: cover;
 	border-radius: 4px;
 }
+
+/* ── Settings ─────────────────────────────────────────────── */
+.settings-wrapper {
+	max-width: 600px;
+	margin: 40px auto;
+	padding: 0 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.settings-wrapper h2 {
+	font-size: 24px;
+	font-weight: 300;
+}
+
+.settings-card {
+	background: var(--ig-white);
+	border: 1px solid var(--ig-border);
+	border-radius: 4px;
+	padding: 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.settings-card h3 {
+	font-size: 16px;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.settings-card p {
+	font-size: 13px;
+	color: var(--ig-muted);
+}
+
+.settings-card input {
+	width: 100%;
+	padding: 9px 10px;
+	background: var(--ig-bg);
+	border: 1px solid var(--ig-border);
+	border-radius: 3px;
+	font-size: 14px;
+	outline: none;
+	transition: border-color var(--transition);
+}
+
+.settings-card input:focus { border-color: #a8a8a8; }
+
+.settings-card button {
+	align-self: flex-start;
+	padding: 8px 20px;
+	background: var(--ig-blue);
+	color: white;
+	border: none;
+	border-radius: var(--radius-btn);
+	font-weight: 600;
+	font-size: 14px;
+	transition: opacity var(--transition);
+}
+
+.settings-card button:hover { opacity: 0.85; }
+.settings-card button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.settings-card--danger { border-color: #ffb3b3; }
+
+.btn-danger {
+	background: var(--ig-red) !important;
+}
+
+.settings-msg {
+	font-size: 13px;
+	min-height: 18px;
+}
+
+.settings-msg--success { color: #007a29; }
+.settings-msg--error   { color: var(--ig-red); }
+
 
 /* ── Footer ───────────────────────────────────────────────── */
 footer {

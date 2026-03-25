@@ -72,4 +72,44 @@ class AuthController
 		Auth::guest();
 		(new View('signup'))->render(); 
 	}
+
+	public function showForgotPassword(): void
+	{
+		Auth::guest();
+		(new View('forgot-password'))->render();
+	}
+	
+	public function showResetPassword(): void
+	{
+		$token = $_GET['token'] ?? '';
+		if (!$token) {
+			header('Location: /forgot-password');
+			exit;
+		}
+		(new View('reset-password'))->render(['token' => $token]);
+	}
+	
+	public function forgotPassword(): void
+	{
+		$email = strtolower(trim($_POST['email'] ?? ''));
+		$this->service->forgotPassword($email);
+	
+		// Always show the same message — don't reveal if email exists
+		header('Location: /login?success=' . urlencode('If that email exists, a reset link has been sent'));
+		exit;
+	}
+	
+	public function resetPassword(): void
+	{
+		$token	= $_POST['token']	?? '';
+		$password = $_POST['password'] ?? '';
+	
+		$result = $this->service->resetPassword($token, $password);
+	
+		if ($result['success'])
+			header('Location: /login?success=' . urlencode('Password reset, you can now log in'));
+		else
+			header('Location: /reset-password?token=' . urlencode($token) . '&error=' . urlencode($result['message']));
+		exit;
+	}
 }
