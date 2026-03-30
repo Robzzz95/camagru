@@ -7,7 +7,17 @@ class Auth
 	public static function requireLogin(): void
 	{
 		if (!self::check()) {
-			header('Location: /login');
+	
+			$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+					  strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+	
+			if ($isAjax) {
+				header('Content-Type: application/json');
+				http_response_code(401);
+				echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+			} else {
+				header('Location: /login');
+			}
 			exit;
 		}
 	}

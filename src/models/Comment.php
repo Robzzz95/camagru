@@ -6,7 +6,7 @@ class Comment extends Model
 {
 	public function getComments(int $imageId, int $limit = 10, int $offset = 0): array
 	{
-		$sql = "SELECT c.id, c.content, c.created_at, u.id AS user_id, u.username FROM comments c 
+		$sql = "SELECT c.id, c.content, c.created_at, u.id AS user_id, u.username, u.avatar AS user_avatar FROM comments c 
 			INNER JOIN users u ON u.id = c.user_id WHERE c.image_id = ? ORDER BY c.created_at DESC
 			LIMIT  ? OFFSET ?";
 		$rows = $this->executeRequest($sql, [$imageId, $limit + 1, $offset])->fetchAll();

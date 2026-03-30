@@ -24,4 +24,5 @@
 			<?php endif; ?>
 		</div>
 	</div>
+<div id="toast" class="toast"></div>
 </header>

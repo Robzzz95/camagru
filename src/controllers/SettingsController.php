@@ -140,4 +140,68 @@ class SettingsController
 		}
 		exit;
 	}
+
+	public function updateAvatar(): void
+	{
+		header('Content-Type: application/json');
+		try {
+			$userId = Auth::id();
+
+			if (empty($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
+				http_response_code(400);
+				echo json_encode(['success' => false, 'error' => 'No file uploaded or upload error.']);
+				exit;
+			}
+
+			$file = $_FILES['avatar'];
+			$maxSize = 5 * 1024 * 1024; // 5 MB
+
+			if ($file['size'] > $maxSize) {
+				http_response_code(400);
+				echo json_encode(['success' => false, 'error' => 'File too large. Max 5 MB.']);
+				exit;
+			}
+
+			// Validate real MIME type, never trust the extension
+			$finfo = new \finfo(FILEINFO_MIME_TYPE);
+			$mime = $finfo->file($file['tmp_name']);
+			$allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+			if (!in_array($mime, $allowed, true)) {
+				http_response_code(422);
+				echo json_encode(['success' => false, 'error' => 'Invalid file type. Use JPG, PNG, WebP or GIF.']);
+				exit;
+			}
+
+			$ext = match($mime) {'image/jpeg' => 'jpg', 'image/png'  => 'png',
+				'image/webp' => 'webp','image/gif'  => 'gif',};
+
+			$uploadDir = __DIR__ . '/../public/uploads/avatars/';
+			// Delete old avatar file if one exists
+			$oldAvatar = $this->user->getAvatarById($userId);
+			if ($oldAvatar && file_exists($uploadDir . $oldAvatar)) {
+				unlink($uploadDir . $oldAvatar);
+			}
+
+			$filename = $userId . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
+			$dest = $uploadDir . $filename;
+
+			if (!move_uploaded_file($file['tmp_name'], $dest)) {
+				http_response_code(500);
+				echo json_encode(['success' => false, 'error' => 'Failed to save file.']);
+				exit;
+			}
+
+			$this->user->updateAvatar($userId, $filename);
+
+			echo json_encode(['success' => true,
+				'avatar'  => '/uploads/avatars/' . $filename,
+				'message' => 'Avatar updated!']);
+		} catch (Throwable $e) {
+			http_response_code(500);
+			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+		}
+		exit;
+	}
+
 }

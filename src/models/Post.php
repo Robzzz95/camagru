@@ -6,7 +6,7 @@ class Post extends Model
 {
 	public function getFeed(int $limit = 10, int $offset = 0, ?int $userId = null): array
 	{
-		$sql = "SELECT i.*, u.username, COUNT(DISTINCT l.id) AS like_count,
+		$sql = "SELECT i.*, u.username, u.avatar AS user_avatar, COUNT(DISTINCT l.id) AS like_count,
 			COUNT(DISTINCT c.id) AS comment_count,
 			MAX(CASE WHEN l.user_id = ? THEN 1 ELSE 0 END) AS liked_by_me
 			FROM images i INNER JOIN users u ON u.id = i.user_id
@@ -24,7 +24,7 @@ class Post extends Model
 
 	public function getById(int $postId, ?int $requestingUserId = null): ?array
 	{
-		$sql = "SELECT i.*, u.username, COUNT(DISTINCT l.id) AS like_count,
+		$sql = "SELECT i.*, u.username, u.avatar AS user_avatar, COUNT(DISTINCT l.id) AS like_count,
 			COUNT(DISTINCT c.id) AS comment_count,
 			MAX(CASE WHEN l.user_id = ? THEN 1 ELSE 0 END) AS liked_by_me
 			FROM images i INNER JOIN users u ON u.id = i.user_id
@@ -37,7 +37,7 @@ class Post extends Model
 
 	public function getByUser(int $userId, int $limit = 12, int $offset = 0): array
 	{
-		$sql = "SELECT i.*, u.username, COUNT(DISTINCT l.id) AS like_count,
+		$sql = "SELECT i.*, u.username, u.avatar AS user_avatar, COUNT(DISTINCT l.id) AS like_count,
 			COUNT(DISTINCT c.id) AS comment_count
 			FROM images i INNER JOIN users u ON u.id = i.user_id
 			LEFT JOIN likes l ON l.image_id = i.id LEFT JOIN  comments c ON c.image_id = i.id

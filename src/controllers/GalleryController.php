@@ -87,15 +87,24 @@ class GalleryController
 		header('Content-Type: application/json');
 		try {
 			$imageId = (int)($_POST['image_id'] ?? 0);
-			if (!$imageId)
-				throw new Exception("Invalid image");
+			if (!$imageId) {
+				http_response_code(400);
+				echo json_encode(['error' => 'Invalid image']);
+				return;
+			}
+			if (!Auth::check()) {
+				http_response_code(401);
+				echo json_encode(['error' => 'Unauthorized']);
+				return;
+			}
 
-			$this->service->toggleLike(Auth::id(), $imageId);
-			$liked = (new Like)->exists(Auth::id(), $imageId);
+			$userId = Auth::id();
+			$this->service->toggleLike($userId, $imageId);
+			$liked = (new Like)->exists($userId, $imageId);
 			echo json_encode(['success' => true, 'liked' => $liked]);
 
 		} catch (Throwable $e) {
-			http_response_code(400);
+			http_response_code(401);
 			echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 		}
 		exit;

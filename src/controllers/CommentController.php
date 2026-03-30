@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../services/CommentService.php';
 require_once __DIR__ . '/../core/Auth.php';
 require_once __DIR__ . '/../services/NotificationService.php';
+require_once __DIR__ . '/../models/User.php';
+
 
 class CommentController
 {
@@ -38,7 +40,9 @@ class CommentController
 				'comment' => ['id' => $this->service->lastId(),
 						'content' => htmlspecialchars($content),
 						'user_id' => Auth::id(),
-						'username' => $user['username']]]);
+						'username' => $user['username'],
+						'user_avatar' => $user['avatar'] ?? null,
+						'can_delete' => true ]]);
 
 		} catch (Throwable $e) {
 			http_response_code(400);
@@ -73,7 +77,20 @@ class CommentController
 			if (!$imageId)
 				throw new Exception("Invalid image");
 
-			echo json_encode($this->service->getComments($imageId, 10, $offset));
+			$data = $this->service->getComments($imageId, 10, $offset);
+			$userId = Auth::id();
+
+			$userModel = new User();
+			$imageOwnerId = $userModel->getImageOwnerId($imageId);
+
+			foreach ($data['comments'] as &$comment) {
+				$comment['can_delete'] = $userId && (
+					$userId === (int)$comment['user_id'] ||
+					$userId === (int)$imageOwnerId
+				);
+			}
+
+			echo json_encode($data);
 
 		} catch (Throwable $e) {
 			http_response_code(400);

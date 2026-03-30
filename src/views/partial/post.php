@@ -1,6 +1,9 @@
 <div class="post-modal-content">
 	<div class="post-header">
-		<a href="/profile/<?= (int)$image['user_id']?>">
+		<a href="/profile/<?= (int)$image['user_id'] ?>" class="post-author">
+			<img class="avatar avatar--sm"
+				src="<?= $image['user_avatar'] ? '/uploads/avatars/' . htmlspecialchars($image['user_avatar']) : '/assets/avatars/default-avatar.svg' ?>"
+				alt="<?= htmlspecialchars($image['username']) ?>">
 			<strong>@<?= htmlspecialchars($image['username']) ?></strong>
 		</a>
 		<?php if (Auth::check() && Auth::id() === (int)$image['user_id']): ?>
@@ -17,14 +20,12 @@
 
 	<div class="post-sidebar">
 		<div class="post-actions">
-			<?php if (Auth::check()): ?>
 				<form class="likeForm" data-id="<?= $image['id'] ?>">
 					<button class="like-btn">
 						<img src="/assets/<?= (int)$image['liked_by_me'] ? 'full_heart.png' : 'heart.png' ?>" width="24" height="24" alt="like">
 					</button>
 				</form>
-				<span class="likes-count"><?= (int)$image['like_count'] ?> likes</span>
-			<?php endif; ?>
+				<span class="likes-count" data-id="<?= $image['id'] ?>"><?= (int)$image['like_count'] ?> likes</span>
 		</div>
 		<hr>
 
@@ -34,9 +35,12 @@
 			<?php foreach ($image['comments'] as $comment): ?>
 				<div class="comment-row">
 					<span>
-						<a href="/profile/<?= (int)$comment['user_id']?>">
-							<strong>@<?= htmlspecialchars($comment['username']) ?></strong>
-						</a>
+					<a href="/profile/<?= (int)$comment['user_id'] ?>" class="post-author">
+						<img class="avatar avatar--sm"
+							src="<?= $comment['user_avatar'] ? '/uploads/avatars/' . htmlspecialchars($comment['user_avatar']) : '/assets/avatars/default-avatar.svg' ?>"
+							alt="<?= htmlspecialchars($comment['username']) ?>">
+						<strong>@<?= htmlspecialchars($comment['username']) ?></strong>
+					</a>
 						<?= htmlspecialchars($comment['content']) ?>
 					</span>
 					<?php if (Auth::check() && (

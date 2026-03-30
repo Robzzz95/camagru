@@ -24,8 +24,11 @@ clean:
 	@docker network rm $$(docker network ls -q) || true
 
 fclean: clean
+	@rm -rf src/public/uploads/avatars/* || true
+	@rm -rf src/public/uploads/*.jpeg || true
+	@rm -rf src/public/uploads/*.gif || true
+	@rm -rf src/public/uploads/*.png || true
 	@docker system prune -af || true
-	@rm -rf src/public/uploads/*
 
 re: fclean run
 

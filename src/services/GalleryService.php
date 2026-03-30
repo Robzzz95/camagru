@@ -40,6 +40,8 @@ class GalleryService
 
 	public function toggleLike(int $userId, int $imageId): void
 	{
+		if (!$userId) 
+			throw new Exception("Unauthorized");
 		$this->like->toggle($userId, $imageId);
 	}
 

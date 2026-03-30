@@ -25,6 +25,14 @@ class User extends Model
 		return ($row ?: null);
 	}
 
+	public function getImageOwnerId(int $imageId): int
+	{
+		$sql = "SELECT user_id FROM images WHERE id = ?";
+		$row = $this->executeRequest($sql, [$imageId])->fetch();
+	
+		return (int)($row['user_id'] ?? 0);
+	}
+
 	public function create(string $username, string $email, string $passwordHash, string $confirmationToken): int
 	{
 		$sql = "INSERT INTO users (username, email, password_hash, confirmation_token) VALUES (?, ?, ?, ?)";
@@ -73,5 +81,18 @@ class User extends Model
 	{
 		$sql = "DELETE FROM users WHERE id = ?";
 		return ($this->executeRequest($sql, [$userId]) !== false);
+	}
+
+	public function updateAvatar(int $userId, string $filename): bool
+	{
+		$sql = "UPDATE users SET avatar = ? WHERE id = ?";
+		return ($this->executeRequest($sql, [$filename, $userId]) !== false);
+	}
+	
+	public function getAvatarById(int $userId): ?string
+	{
+		$sql = "SELECT avatar FROM users WHERE id = ?";
+		$row = $this->executeRequest($sql, [$userId])->fetch();
+		return ($row['avatar'] ?? null);
 	}
 }

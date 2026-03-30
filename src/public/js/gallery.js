@@ -26,9 +26,14 @@ document.addEventListener("submit", async function(e) {
 
 		const response = await fetch("/like", {
 			method: "POST",
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: `image_id=${imageId}`
-		});
+			headers: { "Content-Type": "application/x-www-form-urlencoded",
+				"X-Requested-With": "XMLHttpRequest" },
+			body: `image_id=${imageId}`});
+
+		if (response.status === 401) {
+			showToast("Login required to like posts");
+			return;
+		}
 
 		const data = await response.json();
 		if (!data.success)
@@ -73,16 +78,20 @@ document.addEventListener("submit", async function(e) {
 		div.className = "comment-row";
 		div.innerHTML = `
 			<span>
-				<a href="/profile/${data.comment.user_id}">
-					<strong>@${data.comment.username}</strong>
+				<a href="/profile/${comment.user_id}" class="post-author">
+					<img class="avatar avatar--sm"
+						src="${comment.user_avatar ? '/uploads/avatars/' + comment.user_avatar : '/assets/avatars/default-avatar.svg'}"
+						alt="@${comment.username}">
+					<strong>@${comment.username}</strong>
 				</a>
-				${data.comment.content}
+				${comment.content}
 			</span>
+			${comment.can_delete ? `
 			<form class="deleteCommentForm" method="POST" action="/comment/delete">
-				<input type="hidden" name="comment_id" value="${data.comment.id}">
+				<input type="hidden" name="comment_id" value="${comment.id}">
 				<button class="delete-comment-btn">✖</button>
 			</form>
-		`;
+			` : ''}`;
 		container.prepend(div);
 		container.scrollTop = 0;
 	}
@@ -127,21 +136,27 @@ document.addEventListener("click", async function(e) {
 		const data = await response.json();
 		const container = document.querySelector(".comments");
 
+
 		data.comments.forEach(comment => {
 			const div = document.createElement("div");
 			div.className = "comment-row";
 			div.innerHTML = `
 				<span>
-					<a href="/profile/${comment.user_id}">
+					<a href="/profile/${comment.user_id}" class="post-author">
+						<img class="avatar avatar--sm"
+							src="${comment.user_avatar ? '/uploads/avatars/' + comment.user_avatar : '/assets/avatars/default-avatar.svg'}"
+							alt="@${comment.username}">
 						<strong>@${comment.username}</strong>
 					</a>
 					${comment.content}
 				</span>
+				${comment.can_delete ? `
 				<form class="deleteCommentForm" method="POST" action="/comment/delete">
 					<input type="hidden" name="comment_id" value="${comment.id}">
 					<button class="delete-comment-btn">✖</button>
 				</form>
-			`;
+				` : ''}`;
+		
 			container.insertBefore(div, btn);
 		});
 
@@ -219,7 +234,12 @@ if (feedSentinel) {
 			div.className = "post";
 			div.innerHTML = `
 				<div class="post-header">
-					<a href="/profile/${post.user_id}">
+					<a href="/profile/${post.user_id}" class="post-author">
+						<img
+							class="avatar avatar--sm"
+							src="${post.user_avatar ? '/uploads/avatars/' + post.user_avatar : '/assets/avatars/default-avatar.svg'}"
+							alt="@${post.username}"
+						>
 						<span class="post-username">@${post.username}</span>
 					</a>
 				</div>
@@ -265,4 +285,15 @@ if (window.__openPostId) {
 		document.getElementById("postModalBody").innerHTML = stripScripts(await response.text());
 		document.getElementById("postModal").style.display = "flex";
 	})();
+}
+
+
+function showToast(message) {
+	const toast = document.getElementById("toast");
+	toast.textContent = message;
+	toast.classList.add("show");
+
+	setTimeout(() => {
+		toast.classList.remove("show");
+	}, 2000);
 }

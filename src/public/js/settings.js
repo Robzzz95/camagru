@@ -39,3 +39,56 @@ document.querySelectorAll(".ajax-form").forEach(form => {
 		}
 	});
 });
+
+// ── Avatar upload ──────────────────────────────────────────────
+(function () {
+	const input  = document.getElementById('avatarInput');
+	const preview = document.getElementById('avatarPreview');
+	const msg = document.getElementById('avatarMsg');
+	if (!input || !preview)
+		return;
+
+	let originalSrc = preview.src;
+
+	input.addEventListener('change', async () => {
+		const file = input.files[0];
+		if (!file)
+			return;
+
+		// instant local preview
+		const objectUrl = URL.createObjectURL(file);
+		preview.src = objectUrl;
+		msg.textContent = 'Uploading…';
+		msg.className = 'settings-msg';
+		const formData = new FormData();
+		formData.append('avatar', file);
+
+		try {
+			const res	= await fetch('/settings/avatar', { method: 'POST', body: formData });
+			const result = await res.json();
+
+			if (result.success) {
+				originalSrc = result.avatar + '?t=' + Date.now();
+				preview.src = originalSrc;
+				msg.textContent = result.message ?? '✓ Avatar updated!';
+				msg.classList.add('settings-msg--success');
+
+				// update every other avatar on the page
+				document.querySelectorAll('img.avatar').forEach(img => {
+					if (img !== preview) img.src = originalSrc;
+				});
+			} else {
+				preview.src = originalSrc;
+				msg.textContent = result.error ?? 'Upload failed.';
+				msg.classList.add('settings-msg--error');
+			}
+		} catch {
+			preview.src = originalSrc;
+			msg.textContent = 'Network error. Please try again.';
+			msg.classList.add('settings-msg--error');
+		} finally {
+			input.value = '';
+			URL.revokeObjectURL(objectUrl);
+		}
+	});
+}());

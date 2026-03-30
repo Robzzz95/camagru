@@ -1,6 +1,8 @@
 <div class="profile-container">
 	<div class="profile-header">
-		<img class="avatar" src="/assets/avatars/default-avatar.svg" alt="avatar">
+		<img class="avatar"
+			src="<?= $user['avatar'] ? '/uploads/avatars/' . htmlspecialchars($user['avatar']) : '/assets/avatars/default-avatar.svg' ?>"
+			alt="avatar">
 		<div class="profile-info">
 			<h2>@<?= htmlspecialchars($user['username']) ?></h2>
 			<?php if ($isOwner): ?>

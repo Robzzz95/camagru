@@ -6,9 +6,10 @@ COPY ./src ./src
 COPY ./src/.env .env
 COPY ./src/schema.sql ./schema.sql
 
-# just in case
 RUN mkdir -p src/public/uploads
-RUN chmod -R 775 src/public/uploads
+RUN chmod -R 777 src/public/uploads
+RUN mkdir -p src/public/uploads/avatars
+RUN chmod -R 777 src/public/uploads/avatars
 
 # Install required PHP extensions
 RUN apt-get update && apt-get install -y \
@@ -29,10 +30,11 @@ RUN apt-get update && apt-get install -y msmtp \
 	&& rm -rf /var/lib/apt/lists/*
 
 COPY ./src/config/msmtprc /etc/msmtprc
-RUN chmod 644 /etc/msmtprc
+RUN chmod 777 /etc/msmtprc
 	
 COPY ./src/config/php.ini /usr/local/etc/php/conf.d/php.ini
 
 
 RUN echo "upload_max_filesize=10M" >> /usr/local/etc/php/conf.d/uploads.ini \
  && echo "post_max_size=10M" >> /usr/local/etc/php/conf.d/uploads.ini
+

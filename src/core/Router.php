@@ -43,7 +43,8 @@ class Router
 		$this->post('/settings/username', 'SettingsController@updateUsername', true);
 		$this->post('/settings/email', 'SettingsController@updateEmail', true);
 		$this->post('/settings/password', 'SettingsController@updatePassword', true);
-		$this->post('/settings/delete', 'SettingsController@deleteAccount',  true);
+		$this->post('/settings/delete', 'SettingsController@deleteAccount', true);
+		$this->post('/settings/avatar', 'SettingsController@updateAvatar', true);
 		$this->post('/upload', 'GalleryController@upload', true);
 		$this->post('/gallery/store', 'GalleryController@store', true);
 		$this->post('/like', 'GalleryController@like', true);

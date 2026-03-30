@@ -2,7 +2,10 @@
 	<?php foreach ($images as $img): ?>
 		<div class="post">
 			<div class="post-header">
-				<a href="/profile/<?= (int)$img['user_id']?>">
+				<a href="/profile/<?= (int)$img['user_id'] ?>" class="post-author">
+					<img class="avatar avatar--sm"
+						src="<?= $img['user_avatar'] ? '/uploads/avatars/' . htmlspecialchars($img['user_avatar']) : '/assets/avatars/default-avatar.svg' ?>"
+						alt="<?= htmlspecialchars($img['username']) ?>">
 					<span class="post-username">@<?= htmlspecialchars($img['username']) ?></span>
 				</a>
 			</div>
